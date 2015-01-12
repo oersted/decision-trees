@@ -1,12 +1,26 @@
 from collections import Counter
 from math import log
+from tree import Tree
 
-class DecisionTree:
+class ID3_Tree(Tree):
     def __init__(self):
-        self.label = ""
-        self.max_gain = 0
         self.gains = {}
-        self.children = {}
+        self._gain_data = []
+        super(ID3_Tree, self).__init__()
+
+    def export(self, output_file_path):
+        super(ID3_Tree, self).export(output_file_path)
+        self._write('\n\n')
+        for i in range(len(self._gain_data)):
+            self._write(str(i + 1) + ':\n')
+            for option in self._gain_data[i]:
+                self._write(' * ' + option + ': ' + str(self._gain_data[i][option]) + '\n')
+            self._write('\n')
+
+    def _export(self, tree, indent):
+        if len(tree.children) != 0:
+            self._gain_data.append(tree.gains)
+        super(ID3_Tree, self)._export(tree, indent)
 
 def entropy(count, total):
     entropy = 0
@@ -40,10 +54,10 @@ def choose_best_attribute(data, target_attribute, target_atrib_counter, attribut
             max_gain = attrib_gain
         gains[attribute] = attrib_gain
 
-    return (max_gain_attribute, max_gain, gains)
+    return (max_gain_attribute, gains)
 
 def id3(data, target_attribute, attributes):
-    tree = DecisionTree()
+    tree = ID3_Tree()
     data = data[:]
     target_attrib_values = [record[target_attribute] for record in data]
     target_attrib_counter = Counter(target_attrib_values)
@@ -53,7 +67,7 @@ def id3(data, target_attribute, attributes):
         tree.label = most_common[0]
         return tree
     else:
-        best_attribute, tree.max_gain, tree.gains = choose_best_attribute(data, target_attribute, target_attrib_counter, attributes)
+        best_attribute, tree.gains = choose_best_attribute(data, target_attribute, target_attrib_counter, attributes)
         tree.label = best_attribute
         best_attribute_options = list(set([record[best_attribute] for record in data]))
         for option in best_attribute_options:
@@ -64,16 +78,3 @@ def id3(data, target_attribute, attributes):
             tree.children[option] = subtree
 
         return tree
-
-def use_decision_tree(record, tree):
-    if len(tree.children) == 0:
-        return tree.label
-    else:
-        label = tree.label
-        if not label in record:
-            return None
-        option = record[label]
-        new_record = record.copy()
-        new_record.pop(label)
-        new_tree = tree.children[option]
-        return use_decision_tree(new_record, new_tree)
