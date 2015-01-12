@@ -54,7 +54,7 @@ def main():
     data, attributes = get_data(input_file_path)
     attributes.remove(target_attribute)
     decision_tree = id3(data, target_attribute, attributes)
-    
+
     decision_tree.export(output_file_path)
 
 if __name__ == '__main__':
