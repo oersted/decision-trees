@@ -37,7 +37,7 @@ def get_data(input_file_path):
         sys.exit(2)
     else:
         reader = csv.reader(f)
-        header = reader.next()
+        header = next(reader)
 
         for row in reader:
             record = {}

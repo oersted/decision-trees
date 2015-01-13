@@ -1,6 +1,6 @@
 from collections import Counter
 from math import log
-from tree import Tree
+from .tree import Tree
 
 class ID3_Tree(Tree):
     def __init__(self):
