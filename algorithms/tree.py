@@ -7,7 +7,7 @@ class Tree(object):
         self._write = None
         self._next_tree_number = 1
 
-    def export(self, output_file_path):
+    def export(self, output_file_path=None):
         if output_file_path:
             f = open(output_file_path, 'w')
             self._write = f.write

@@ -52,6 +52,11 @@ def get_data(input_file_path):
 def main():
     input_file_path, target_attribute, output_file_path = parse_opts()
     data, attributes = get_data(input_file_path)
+
+    if attributes.count(target_attribute) != 1:
+        sys.stderr.write("The target attribute doesn't exist.\n")
+        sys.exit(2)
+
     attributes.remove(target_attribute)
     decision_tree = id3(data, target_attribute, attributes)
 
