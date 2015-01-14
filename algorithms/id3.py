@@ -24,8 +24,8 @@ class ID3_Tree(Tree):
 
 def entropy(count, total):
     entropy = 0
-    for value in count.most_common():
-        p = value[1]/float(total)
+    for value in count:
+        p = count[value]/float(total)
         entropy -= p * log(p, 2)
 
     return entropy
@@ -35,8 +35,8 @@ def gain(data, target_attribute, target_attrib_entropy, attribute):
     attribute_values = [record[attribute] for record in data]
     total = len(attribute_values)
     count = Counter(attribute_values)
-    for value in count.most_common():
-        p = value[1]/float(total)
+    for value in count:
+        p = count[value]/float(total)
         attrib_values = [record[target_attribute] for record in data if record[attribute] == value[0]]
         attrib_gain -= p * entropy(Counter(attrib_values),len(attrib_values))
 
