@@ -97,8 +97,12 @@ def choose_best_attribute(data, target_attribute, target_atrib_counter, attribut
 
     return (max_gain_attribute, gains, threshold)
 
-def create_subtree(tree, data, attributes, best_attribute, option, rule=lambda x, y: x == y):
-    pass
+def create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule=lambda x, y: x == y):
+    new_data = [record for record in data if rule(record[best_attribute], option)]
+    new_attributes = attributes[:]
+    new_attributes.remove(best_attribute)
+    subtree = id3(new_data, target_attribute, new_attributes)
+    tree.children[option] = subtree
 
 
 def id3(data, target_attribute, attributes):
@@ -116,25 +120,17 @@ def id3(data, target_attribute, attributes):
         tree.label = best_attribute
 
         if threshold != None:
-            new_data = [record for record in data if float(record[best_attribute]) <= threshold]
-            new_attributes = attributes[:]
-            new_attributes.remove(best_attribute)
-            subtree = id3(new_data, target_attribute, new_attributes)
-            tree.children[best_attribute[1:5] + ' <= ' + str(threshold)] = subtree
+            option = best_attribute[1:5] + ' <= ' + str(threshold)
+            rule = lambda x, y: float(x) <= threshold
+            create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule)
 
-            new_data = [record for record in data if float(record[best_attribute]) > threshold]
-            new_attributes = attributes[:]
-            new_attributes.remove(best_attribute)
-            subtree = id3(new_data, target_attribute, new_attributes)
-            tree.children[best_attribute[1:5] + ' > ' + str(threshold)] = subtree
+            option = best_attribute[1:5] + ' > ' + str(threshold)
+            rule = lambda x, y: float(x) > threshold
+            create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule)
         else:
             # conversion to set used to remove duplicates
             best_attribute_options = list(set([record[best_attribute] for record in data]))
             for option in best_attribute_options:
-                new_data = [record for record in data if record[best_attribute] == option]
-                new_attributes = attributes[:]
-                new_attributes.remove(best_attribute)
-                subtree = id3(new_data, target_attribute, new_attributes)
-                tree.children[option] = subtree
+                create_subtree(tree, data, attributes, target_attribute, best_attribute, option)
 
         return tree
