@@ -42,7 +42,7 @@ def gain(data, target_attribute, target_attrib_entropy, attribute):
     count = Counter(attribute_values)
     for key in count:
         p = count[key]/float(total)
-        attrib_values = [record[target_attribute] for record in data if record[attribute] == count[key]]
+        attrib_values = [record[target_attribute] for record in data if record[attribute] == key]
         attrib_gain -= p * entropy(Counter(attrib_values),len(attrib_values))
 
     return attrib_gain
