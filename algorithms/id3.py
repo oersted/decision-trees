@@ -1,30 +1,30 @@
-from collections import Counter
 from math import log
 from .tree import Tree
 
 class InvalidDataError(Exception):
     pass
 
-
 class ID3_Tree(Tree):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.gains = {}
         self._gain_data = []
-        super(ID3_Tree, self).__init__()
+        super(ID3_Tree, self).__init__(*args, **kwargs)
 
-    def export(self, output_file_path):
-        super(ID3_Tree, self).export(output_file_path)
+    def render(self, output_file_path):
+        super(ID3_Tree, self).render(output_file_path)
         self._write('\n\n')
         for i in range(len(self._gain_data)):
-            self._write(str(i + 1) + ':\n')
-            for option in self._gain_data[i]:
-                self._write(' * ' + option + ': ' + str(self._gain_data[i][option]) + '\n')
-            self._write('\n')
+            if self._gain_data[i]:
+                self._write(str(i + 1) + ':\n')
+                for option in self._gain_data[i]:
+                    self._write(
+                        ' * ' + option + ': ' + str(self._gain_data[i][option]) + '\n')
+                self._write('\n')
 
-    def _export(self, tree, indent):
+    def _render(self, tree, indent):
         if len(tree.children) != 0:
             self._gain_data.append(tree.gains)
-        super(ID3_Tree, self)._export(tree, indent)
+        super(ID3_Tree, self)._render(tree, indent)
 
 def entropy(count, total):
     entropy = 0
@@ -79,58 +79,20 @@ def continuous_gain(data, target_attribute, target_attrib_entropy, attribute):
 def is_continuous_attribute(attribute):
     return attribute[0] == '*'
 
-def choose_best_attribute(data, target_attribute, target_atrib_counter, attributes):
+def id3(data, attributes, target_attribute, target_atrib_counter, ID3tree):
     target_attrib_entropy = entropy(target_atrib_counter, len(data))
     max_gain_attribute = ""
     max_gain = None
     threshold = None
-    gains = {}
     for attribute in attributes:
         if is_continuous_attribute(attribute):
-            attrib_gain, threshold = continuous_gain(data, target_attribute, target_attrib_entropy, attribute)
+            attrib_gain, threshold = continuous_gain(data, target_attribute,
+                target_attrib_entropy, attribute)
         else:
             attrib_gain = gain(data, target_attribute, target_attrib_entropy, attribute)
         if max_gain == None or attrib_gain > max_gain:
             max_gain_attribute = attribute
             max_gain = attrib_gain
-        gains[attribute] = attrib_gain
+        ID3tree.gains[attribute] = attrib_gain
 
-    return (max_gain_attribute, gains, threshold)
-
-def create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule=lambda x, y: x == y):
-    new_data = [record for record in data if rule(record[best_attribute], option)]
-    new_attributes = attributes[:]
-    new_attributes.remove(best_attribute)
-    subtree = id3(new_data, target_attribute, new_attributes)
-    tree.children[option] = subtree
-
-
-def id3(data, target_attribute, attributes):
-    tree = ID3_Tree()
-    data = data[:]
-    target_attrib_values = [record[target_attribute] for record in data]
-    target_attrib_counter = Counter(target_attrib_values)
-    most_common = target_attrib_counter.most_common(1)[0]
-
-    if not data or len(attributes) == 0 or most_common[1] == len(target_attrib_values):
-        tree.label = most_common[0]
-        return tree
-    else:
-        best_attribute, tree.gains, threshold = choose_best_attribute(data, target_attribute, target_attrib_counter, attributes)
-        tree.label = best_attribute
-
-        if threshold != None:
-            option = best_attribute[1:5] + ' <= ' + str(threshold)
-            rule = lambda x, y: float(x) <= threshold
-            create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule)
-
-            option = best_attribute[1:5] + ' > ' + str(threshold)
-            rule = lambda x, y: float(x) > threshold
-            create_subtree(tree, data, attributes, target_attribute, best_attribute, option, rule)
-        else:
-            # conversion to set used to remove duplicates
-            best_attribute_options = list(set([record[best_attribute] for record in data]))
-            for option in best_attribute_options:
-                create_subtree(tree, data, attributes, target_attribute, best_attribute, option)
-
-        return tree
+    return (max_gain_attribute, threshold)
