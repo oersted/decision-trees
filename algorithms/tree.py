@@ -1,11 +1,104 @@
+from collections import Counter
 import sys
 
-class Tree(object):
+class DecisionTree(object):
     def __init__(self, label = None):
         self.label = label
         self.children = {}
         self._write = None
         self._next_tree_number = 1
+
+    def extend(self, data, attribs, target_attrib, choose_attrib):
+        loose_ends = []
+        target_attrib_values = [record[target_attrib] for record in data]
+        target_attrib_counter = Counter(target_attrib_values)
+        most_common = target_attrib_counter.most_common(1)[0]
+
+        if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
+            self.label = most_common[0]
+        else:
+            chosen_attrib, threshold = choose_attrib(
+                data, attribs, target_attrib, target_attrib_counter)
+            self.label = chosen_attrib
+
+            if threshold:
+                new_tree = self.__class__()
+                self.children[option] = new_tree
+                option = chosen_attrib[1:5] + ' <= ' + str(threshold)
+                rule = lambda x, y: float(x) <= threshold
+                new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
+                loose_ends.append((new_tree, new_data, new_attribs))
+
+                new_tree = self.__class__()
+                self.children[option] = new_tree
+                option = chosen_attribute[1:5] + ' > ' + str(threshold)
+                rule = lambda x, y: float(x) > threshold
+                new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
+                loose_ends.append((new_tree, new_data, new_attribs))
+            else:
+                # conversion to set used to remove duplicates
+                chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
+                for option in chosen_attrib_options:
+                    new_tree = self.__class__()
+                    self.children[option] = new_tree
+                    new_data, new_attribs = self._create_new_params(
+                        data, attribs, chosen_attrib, option)
+                    loose_ends.append((new_tree, new_data, new_attribs))
+
+        return loose_ends
+
+    def _create_new_params(self, data, attribs, chosen_attrib, option, rule = lambda x, y: x == y):
+        new_data = [record for record in data if rule(record[chosen_attrib], option)]
+        new_attribs = attribs[:]
+        new_attribs.remove(chosen_attrib)
+
+        return (new_data, new_attribs)
+
+    def _is_continuous_attribute(self, attribute):
+        return attribute[0] == '*'
+
+    def manual(self, data, attributes, target_attribute, target_attrib_counter):
+        text = "Choose the next attribute that will be used as the pivot:\n"
+        for i in range(len(attributes)):
+            text += "%d. %s" % (i, attributes[i])
+        text += "\n"
+        conversion = int
+        attribs_range = range(len(attributes))
+        condition = lambda x: x in attribs_range
+        option = self.__class__._read_option(text, fail_text, conversion, condition)
+
+        chosen_attribute = attributes[option]
+        threshold = None
+        if self._is_continuous_attribute(chosen_attribute):
+            text = "Choose the threshold on which the continuous attribute will be divided:\n\n"
+            conversion = float
+            threshold = self.__class__._read_option(text, fail_text, conversion)
+
+        return (chosen_attribute, threshold)
+
+    @classmethod
+    def read_option(self, text = None, fail_text = None, conversion = None, condition = None):
+        while True:
+            if text:
+                sys.stdout.write(text)
+            option = sys.stdin.readline()
+            if conversion:
+                try:
+                    option = conversion(option)
+                except:
+                    if fail_text:
+                        sys.stdout.write(fail_text)
+                else:
+                    if condition:
+                        if condition(option):
+                            break
+                        else:
+                            if fail_text:
+                                sys.stdout.write(fail_text)
+                    else:
+                        break
+
+        return option
 
     def render(self, output_file_path=None):
         if output_file_path:
@@ -41,37 +134,3 @@ class Tree(object):
 
                 count -= 1
                 self._render(tree.children[option], new_indent)
-
-    @classmethod
-    def extend(self, data, attributes, target_attribute, chosen_attribute, threshold,
-            tree, most_common, rule = lambda x, y: x == y):
-        next_call = []
-        data = [record for record in data if rule(record[chosen_attribute], option)]
-
-        attributes = attributes[:]
-        new_attributes.remove(chosen_attribute)
-
-        tree.label(chosen_attribute)
-        new_tree = ID3_Tree()
-
-        if not data or len(attributes) == 0 or most_common[1] == len(target_attrib_values):
-            tree.label = most_common[0]
-        else:
-            if threshold != None:
-                option = chosen_attribute[1:5] + ' <= ' + str(threshold)
-                tree.children[option] = new_tree
-                rule = lambda x, y: float(x) <= threshold
-                next_call.append((data, attributes, new_tree, rule))
-
-                option = chosen_attribute[1:5] + ' > ' + str(threshold)
-                tree.children[option] = new_tree
-                rule = lambda x, y: float(x) > threshold
-                next_call.append((data, attributes, new_tree, rule))
-            else:
-                # conversion to set used to remove duplicates
-                chosen_attribute_options = list(set(
-                    [record[chosen_attribute] for record in data]))
-                for option in best_attribute_options:
-                    next_call.append((data, attributes, new_tree, rule))
-
-        return next_call

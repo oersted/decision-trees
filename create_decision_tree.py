@@ -1,6 +1,6 @@
 import sys, getopt, csv
-from collections import Counter
-from algorithms.id3 import id3, ID3_Tree
+from algorithms.tree import DecisionTree
+from algorithms.id3 import ID3Tree
 
 def parse_opts():
     usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>]\n"
@@ -53,93 +53,44 @@ def get_data(input_file_path):
 
     return (data, header)
 
-def count_target_attrib_values(data, target_attribute):
-    target_attrib_values = [record[target_attribute] for record in data]
-    return Counter(target_attrib_values)
-
-def manual(data, attributes, target_attribute, new_tree):
-    id3_attribute, threshold = id3(data, attributes, target_attribute,
-        target_atrib_counter, new_tree)
-
-    while True:
-        sys.stdout.write("Choose the next attribute that will be used as the pivot:\n")
-        sys.stdout.write("\t1. Choose attribute manually.\n")
-        sys.stdout.write("\t2. Continue with ID3: %s\n" % id3_attribute)
-        sys.stdout.write("\n")
-
-        option = sys.stdin.readline()
-        try:
-            option = int(option)
-        except:
-            pass
-        else:
-            if option in (1,2):
-                break
+def choose_algorithm(data, attributes, target_attribute):
+    text = "Choose the next attribute that will be used as the pivot:\n"
+    text += "\t1. Choose attribute manually.\n"
+    text += "\t2. Continue with ID3."
+    text += "\n"
+    fail_text = "That's not an option.\n\n"
+    conversion = int
+    condition = lambda x: x in (1,2)
+    option = DecisionTree.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        while True:
-            sys.stdout.write("Choose the next attribute that will be used as the pivot:\n")
-            for i in range(len(attributes)):
-                sys.stdout.write("%d. %s" % (i, attributes[i]))
-            sys.stdout.write("\n")
-
-            option = sys.stdin.readline()
-            try:
-                option = int(option)
-            except:
-                pass
-            else:
-                if option in range(len(attributes)):
-                    break
-
-        chosen_attribute = attributes[option]
-        threshold = None
-        if chosen_attribute[0] == '*':
-            while True:
-                sys.stdout.write(("Choose the threshold on which the "
-                    "continuous attribute will be divided:\n"))
-                sys.stdout.write("\n")
-
-                threshold = sys.stdin.readline()
-                try:
-                    threshold = float(threshold)
-                except:
-                    pass
-                else:
-                    break
-
-        return (chosen_attribute, threshold)
-    else:
-        return (id3_attribute, threshold)
+        new_tree = DecisionTree()
+        return (new_tree, new_tree.manual)
+    if option == 2:
+        new_tree = ID3Tree()
+        return (new_tree, new_tree.id3)
 
 def main():
-    input_file_path, target_attribute, output_file_path, manual_mode = parse_opts()
-    data, attributes = get_data(input_file_path)
+    input_file_path, target_attrib, output_file_path, manual_mode = parse_opts()
+    data, attribs = get_data(input_file_path)
 
-    if attributes.count(target_attribute) != 1:
+    if attribs.count(target_attrib) != 1:
         sys.stderr.write("The target attribute doesn't exist.\n")
         sys.exit(2)
+    attribs.remove(target_attrib)
 
-    attributes.remove(target_attribute)
-    decision_tree = ID3_Tree(target_attribute)
-    next_call = [(data, attributes, decision_tree, lambda x, y: x == y)]
-    for new_parameters in next_call:
-        data, attributes, new_tree, rule = new_parameters
+    if manual_mode:
+        tree, choose_attrib = choose_algorithm(data, attribs, target_attrib)
+    else:
+        tree = ID3Tree()
+        choose_attrib = tree.id3
 
-        target_attrib_counter = count_target_attrib_values(data, target_attribute)
-        most_common = target_attrib_counter.most_common(1)[0]
+    loose_ends = tree.extend(data, attribs, target_attrib, choose_attrib)
+    for loose_end in loose_ends:
+        new_tree, new_data, new_attribs = loose_end
+        loose_ends.append(tree.extend(new_data, new_attribs, target_attrib, choose_attrib))
 
-        if manual_mode:
-            chosen_attribute, threshold = manual(data, attributes, target_attribute,
-                target_attrib_counter, new_tree)
-        else:
-            chosen_attribute, threshold = id3(data, attributes, target_attribute,
-                target_attrib_counter, new_tree)
-
-        ID3_Tree.extend(data, attributes, target_attribute, chosen_attribute,
-            threshold, new_tree, most_common, rule)
-
-    decision_tree.render(output_file_path)
+    tree.render(output_file_path)
 
 if __name__ == '__main__':
     main()
