@@ -3,14 +3,21 @@ from algorithms.tree import DecisionTree
 from algorithms.id3 import ID3Tree
 
 def parse_opts():
-    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>] [-m]\n"
+    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] "
+             "[-c <costs_file>] <inputfile> <target_attribute>\n"
+             "  -o     use <outputfile> instead stdin\n"
+             "  -c     take into account attribute costs in <costs_file> to select the best attribute\n"
+             "  -m     use manual mode\n"
+             "  -r     use gain ratio value instead of gain only to select the best attribute\n")
     input_file_path = ''
     target_attribute = ''
     output_file_path = ''
     manual_mode = False
+    gain_rate = False
+    costs_file = None
 
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "mo:")
+        opts, args = getopt.getopt(sys.argv[1:], "o:ma:c:r")
         if len(args) == 2:
            input_file_path = args[0]
            target_attribute = args[1]
@@ -25,11 +32,16 @@ def parse_opts():
                 output_file_path = arg
             elif opt == '-m':
                 manual_mode = True
+            elif opt == '-c':
+                costs_file = arg
+            elif opt == '-r':
+                ID3Tree.use_gain_ratio = True
             else:
                 sys.stderr.write(usage)
                 sys.exit(2)
 
-    return (input_file_path, target_attribute, output_file_path, manual_mode)
+    return (input_file_path, target_attribute, output_file_path,
+            manual_mode, costs_file)
 
 def get_data(input_file_path):
     data = []
@@ -53,6 +65,26 @@ def get_data(input_file_path):
 
     return (data, header)
 
+def get_costs(file_name):
+    costs = {}
+    try:
+        f = open(file_name, 'r')
+    except:
+        sys.stderr.write("The costs file couln't be opened.\n")
+        sys.exit(2)
+    else:
+        reader = csv.reader(f)
+        attribute_names = next(reader)
+        attribute_costs = next(reader)
+        for i in range(len(attribute_names)):
+            costs[attribute_names[i]] = attribute_costs[i]
+    finally:
+        f.close()
+
+    ID3Tree.use_costs = True
+    ID3Tree.attribute_costs = costs
+
+
 def choose_algorithm(data, attributes, target_attribute):
     text = "Choose the next attribute that will be used as the pivot (***):\n"
     text += "\t1. Choose attribute manually.\n"
@@ -69,8 +101,11 @@ def choose_algorithm(data, attributes, target_attribute):
         return 'id3'
 
 def main():
-    input_file_path, target_attrib, output_file_path, manual_mode = parse_opts()
+    input_file_path, target_attrib, output_file_path, manual_mode, costs_file = parse_opts()
     data, attribs = get_data(input_file_path)
+
+    if costs_file is not None:
+       get_costs(costs_file)
 
     if attribs.count(target_attrib) != 1:
         sys.stderr.write("The target attribute doesn't exist.\n")

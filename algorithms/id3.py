@@ -6,6 +6,10 @@ class InvalidDataError(Exception):
     pass
 
 class ID3Tree(DecisionTree):
+    attribute_costs = {}
+    use_costs = False
+    use_gain_ratio = False
+
     def __init__(self, *args, **kwargs):
         self.gains = {}
         self._gain_data = []
