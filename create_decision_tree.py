@@ -1,16 +1,18 @@
 import sys, getopt, csv
 from algorithms.tree import DecisionTree
 from algorithms.id3 import ID3Tree
+import xml.etree.ElementTree as ET
 
 def parse_opts():
-    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>] [-m]\n"
-    input_file_path = ''
-    target_attribute = ''
-    output_file_path = ''
+    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>] [-s <savefile>] [-m]\n"
+    input_file_path = None
+    target_attribute = None
+    output_file_path = None
+    save_file_path = None
     manual_mode = False
 
     try:
-        opts, args = getopt.gnu_getopt(sys.argv[1:], "mo:")
+        opts, args = getopt.gnu_getopt(sys.argv[1:], "mo:s:")
         if len(args) == 2:
            input_file_path = args[0]
            target_attribute = args[1]
@@ -25,11 +27,13 @@ def parse_opts():
                 output_file_path = arg
             elif opt == '-m':
                 manual_mode = True
+            elif opt == '-s':
+                save_file_path = arg
             else:
                 sys.stderr.write(usage)
                 sys.exit(2)
 
-    return (input_file_path, target_attribute, output_file_path, manual_mode)
+    return (input_file_path, target_attribute, output_file_path, save_file_path, manual_mode)
 
 def get_data(input_file_path):
     data = []
@@ -68,8 +72,22 @@ def choose_algorithm(data, attributes, target_attribute):
     if option == 2:
         return 'id3'
 
+def save_subtree(root, tree, option):
+    subtree = ET.SubElement(root, 'node', {'label': tree.label, 'option': option})
+    for option in tree.children:
+        save_subtree(subtree, tree.children[option], option)
+
+def save(tree, save_file_path):
+    root = ET.Element('root', {'label': tree.label})
+    XMLTree = ET.ElementTree(root)
+    for option in tree.children:
+        save_subtree(root, tree.children[option], option)
+
+    f = open(save_file_path, 'w')
+    f.write(ET.tostring(root))
+
 def main():
-    input_file_path, target_attrib, output_file_path, manual_mode = parse_opts()
+    input_file_path, target_attrib, output_file_path, save_file_path, manual_mode = parse_opts()
     data, attribs = get_data(input_file_path)
 
     if attribs.count(target_attrib) != 1:
@@ -93,6 +111,9 @@ def main():
             new_data, new_attribs, target_attrib, getattr(new_tree, choose_attrib)))
 
     tree.render(output_file_path)
+
+    if save_file_path:
+        save(tree, save_file_path)
 
 if __name__ == '__main__':
     main()

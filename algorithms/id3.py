@@ -80,7 +80,7 @@ class ID3Tree(DecisionTree):
 
         return attrib_gain
 
-    def render(self, output_file_path):
+    def render(self, output_file_path = None):
         super(ID3Tree, self).render(output_file_path)
         self._write('\n\n')
         for i in range(len(self._gain_data)):
