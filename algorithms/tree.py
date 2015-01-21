@@ -111,9 +111,6 @@ class DecisionTree(object):
         self._render(self, '')
         self._next_tree_number = 1
 
-        if output_file_path:
-            f.close()
-
     def _render(self, tree, indent):
         if len(tree.children) == 0:
             if tree.label:
