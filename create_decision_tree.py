@@ -4,7 +4,8 @@ from algorithms.id3 import ID3Tree
 import xml.etree.ElementTree as ET
 
 def parse_opts():
-    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>] [-s <savefile>] [-m]\n"
+    usage = ("create_decision_tree.py <inputfile> <target_attribute> "
+        "[-o <outputfile>] [-s <savefile>] [-m]\n")
     input_file_path = None
     target_attribute = None
     output_file_path = None
@@ -113,7 +114,7 @@ def main():
     tree.render(output_file_path)
 
     if save_file_path:
-        save(tree, save_file_path)
+        tree.save(save_file_path)
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,6 @@
 from math import log
 from collections import Counter
-from .tree import DecisionTree
+from tree import DecisionTree
 
 class InvalidDataError(Exception):
     pass
