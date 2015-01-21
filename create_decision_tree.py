@@ -58,8 +58,59 @@ def count_target_attrib_values(data, target_attribute):
     return Counter(target_attrib_values)
 
 def manual(data, attributes, target_attribute, new_tree):
-    # Manual menu
-    pass
+    id3_attribute, threshold = id3(data, attributes, target_attribute,
+        target_atrib_counter, new_tree)
+
+    while True:
+        sys.stdout.write("Choose the next attribute that will be used as the pivot:\n")
+        sys.stdout.write("\t1. Choose attribute manually.\n")
+        sys.stdout.write("\t2. Continue with ID3: %s\n" % id3_attribute)
+        sys.stdout.write("\n")
+
+        option = sys.stdin.readline()
+        try:
+            option = int(option)
+        except:
+            pass
+        else:
+            if option in (1,2):
+                break
+
+    if option == 1:
+        while True:
+            sys.stdout.write("Choose the next attribute that will be used as the pivot:\n")
+            for i in range(len(attributes)):
+                sys.stdout.write("%d. %s" % (i, attributes[i]))
+            sys.stdout.write("\n")
+
+            option = sys.stdin.readline()
+            try:
+                option = int(option)
+            except:
+                pass
+            else:
+                if option in range(len(attributes)):
+                    break
+
+        chosen_attribute = attributes[option]
+        threshold = None
+        if chosen_attribute[0] == '*':
+            while True:
+                sys.stdout.write(("Choose the threshold on which the "
+                    "continuous attribute will be divided:\n"))
+                sys.stdout.write("\n")
+
+                threshold = sys.stdin.readline()
+                try:
+                    threshold = float(threshold)
+                except:
+                    pass
+                else:
+                    break
+
+        return (chosen_attribute, threshold)
+    else:
+        return (id3_attribute, threshold)
 
 def main():
     input_file_path, target_attribute, output_file_path, manual_mode = parse_opts()
@@ -71,7 +122,7 @@ def main():
 
     attributes.remove(target_attribute)
     decision_tree = ID3_Tree(target_attribute)
-    next_call = id3(data, target_attribute, attributes, decision_tree)
+    next_call = [(data, attributes, decision_tree, lambda x, y: x == y)]
     for new_parameters in next_call:
         data, attributes, new_tree, rule = new_parameters
 
@@ -80,12 +131,12 @@ def main():
 
         if manual_mode:
             chosen_attribute, threshold = manual(data, attributes, target_attribute,
-                target_atrib_counter, new_tree)
+                target_attrib_counter, new_tree)
         else:
             chosen_attribute, threshold = id3(data, attributes, target_attribute,
-                target_atrib_counter, new_tree)
+                target_attrib_counter, new_tree)
 
-        ID3tree.extend(data, attributes, target_attribute, chosen_attribute,
+        ID3_Tree.extend(data, attributes, target_attribute, chosen_attribute,
             threshold, new_tree, most_common, rule)
 
     decision_tree.render(output_file_path)

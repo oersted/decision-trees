@@ -1,4 +1,5 @@
 from math import log
+from collections import Counter
 from .tree import Tree
 
 class InvalidDataError(Exception):

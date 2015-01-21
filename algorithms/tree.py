@@ -43,8 +43,8 @@ class Tree(object):
                 self._render(tree.children[option], new_indent)
 
     @classmethod
-    def extend(data, attributes, target_attribute, chosen_attribute, threshold,
-        tree, most_common, rule = lambda x, y: x == y):
+    def extend(self, data, attributes, target_attribute, chosen_attribute, threshold,
+            tree, most_common, rule = lambda x, y: x == y):
         next_call = []
         data = [record for record in data if rule(record[chosen_attribute], option)]
 
@@ -72,6 +72,6 @@ class Tree(object):
                 chosen_attribute_options = list(set(
                     [record[chosen_attribute] for record in data]))
                 for option in best_attribute_options:
-                    next_call.append((data, attributes, new_tree))
+                    next_call.append((data, attributes, new_tree, rule))
 
         return next_call
