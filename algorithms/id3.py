@@ -1,6 +1,7 @@
 from math import log
 from collections import Counter
 from .tree import DecisionTree
+import pdb
 
 class InvalidDataError(Exception):
     pass
@@ -27,6 +28,15 @@ class ID3Tree(DecisionTree):
                     target_attrib_entropy, attribute)
             else:
                 attrib_gain = self._gain(data, target_attribute, target_attrib_entropy, attribute)
+
+            if ID3Tree.use_gain_ratio and attrib_gain > 0:
+                count = Counter([record[attribute] for record in data])
+                intrinsic_information = self._entropy(count, len(data))
+                attrib_gain = attrib_gain / intrinsic_information
+
+            if ID3Tree.use_costs:
+                attrib_gain = attrib_gain**2/attibute_costs[attibute]
+
             if max_gain == None or attrib_gain > max_gain:
                 max_gain_attribute = attribute
                 max_gain = attrib_gain
