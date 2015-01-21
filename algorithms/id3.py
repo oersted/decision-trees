@@ -1,7 +1,6 @@
 from math import log
 from collections import Counter
 from .tree import DecisionTree
-import pdb
 
 class InvalidDataError(Exception):
     pass
@@ -94,7 +93,8 @@ class ID3Tree(DecisionTree):
 
         return attrib_gain
 
-    def render(self, output_file_path=None):
+
+    def render(self, output_file_path = None):
         super(ID3Tree, self).render(output_file_path)
         self._write('\n\n')
         for i in range(len(self._gain_data)):

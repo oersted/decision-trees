@@ -1,23 +1,28 @@
 import sys, getopt, csv
 from algorithms.tree import DecisionTree
 from algorithms.id3 import ID3Tree
+import xml.etree.ElementTree as ET
 
 def parse_opts():
-    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] "
-             "[-c <costs_file>] <inputfile> <target_attribute>\n"
-             "  -o     use <outputfile> instead stdin\n"
-             "  -c     take into account attribute costs in <costs_file> to select the best attribute\n"
-             "  -m     use manual mode\n"
-             "  -r     use gain ratio value instead of gain only to select the best attribute\n")
+    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]"
+        "[-c <costs_file>] [-m] [-r] [-u] <inputfile> <target_attribute>\n"
+        "  -o     use <outputfile> instead stdin\n"
+        "  -s     save resulting tree in <savefile> as XML\n"
+        "  -c     take into account attribute costs in <costs_file> to select the best attribute\n"
+        "  -m     use manual mode\n"
+        "  -r     use gain ratio value instead of gain only to select the best attribute\n"
+        "  -u     use decision tree after creating it\n")
     input_file_path = ''
     target_attribute = ''
     output_file_path = ''
+    save_file_path = None
+    costs_file = None
     manual_mode = False
     gain_rate = False
-    costs_file = None
+    use = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:ma:c:r")
+        opts, args = getopt.getopt(sys.argv[1:], "o:muc:rs:")
         if len(args) == 2:
            input_file_path = args[0]
            target_attribute = args[1]
@@ -32,6 +37,10 @@ def parse_opts():
                 output_file_path = arg
             elif opt == '-m':
                 manual_mode = True
+            elif opt == '-s':
+                save_file_path = arg
+            elif opt == '-u':
+                use = True
             elif opt == '-c':
                 costs_file = arg
             elif opt == '-r':
@@ -40,8 +49,8 @@ def parse_opts():
                 sys.stderr.write(usage)
                 sys.exit(2)
 
-    return (input_file_path, target_attribute, output_file_path,
-            manual_mode, costs_file)
+    return (input_file_path, target_attribute, output_file_path, save_file_path, costs_file,
+        manual_mode, use)
 
 def get_data(input_file_path):
     data = []
@@ -101,7 +110,7 @@ def choose_algorithm(data, attributes, target_attribute):
         return 'id3'
 
 def main():
-    input_file_path, target_attrib, output_file_path, manual_mode, costs_file = parse_opts()
+    input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
     data, attribs = get_data(input_file_path)
 
     if costs_file is not None:
@@ -128,6 +137,12 @@ def main():
             new_data, new_attribs, target_attrib, getattr(new_tree, choose_attrib)))
 
     tree.render(output_file_path)
+
+    if save_file_path:
+        tree.save(save_file_path)
+
+    if use:
+        tree.use()
 
 if __name__ == '__main__':
     main()

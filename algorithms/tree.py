@@ -1,4 +1,5 @@
 from collections import Counter, deque
+import xml.etree.ElementTree as ET
 import sys
 
 class DecisionTree(object):
@@ -101,6 +102,71 @@ class DecisionTree(object):
 
         return option
 
+    def use(self):
+        if len(self.children) == 0:
+            sys.stdout.write("\nResult: " + self.label + '\n')
+        else:
+            attrib = self.label
+            text = "\nGive the value of attribute %s:\n" % attrib
+            fail_text = "Not a valid value.\n"
+            if self._is_continuous_attribute(attrib):
+                conversion = float
+            else:
+                conversion = str
+            condition = lambda key: key in self.children
+            value = self.__class__.read_option(text, fail_text, conversion)
+            if type(value) == str:
+                value = value.strip('\n')
+
+            if self._is_continuous_attribute(attrib):
+                # There will always be only 2 children
+                options = self.children.keys()
+                if ' <= ' in options[0]:
+                    threshold = float(option[0].split(' <= ')[1])
+                    if value <= threshold:
+                        self.children[options[0]].use()
+                    else:
+                        self.children[option[1]].use()
+                else:
+                    threshold = float(option[1].split(' <= ')[1])
+                    if value <= threshold:
+                        self.children[options[1]].use()
+                    else:
+                        self.children[option[0]].use()
+            else:
+                self.children[value].use()
+
+    def save(self, save_file_path):
+        root = ET.Element('root', {'label': self.label})
+        XMLTree = ET.ElementTree(root)
+        for option in self.children:
+            self.children[option]._save(root, option)
+
+        f = open(save_file_path, 'w')
+        f.write(ET.tostring(root))
+
+    def _save(self, root, option):
+        subtree = ET.SubElement(root, 'node', {'label': self.label, 'option': option})
+        for option in self.children:
+            self.children[option]._save(subtree, option)
+
+    def load(self, input_file_path):
+        try:
+            XMLTree = ET.parse(input_file_path)
+        except:
+            sys.stderr.write("The input file couln't be opened.\n")
+            sys.exit(2)
+        else:
+            root = XMLTree.getroot()
+            self._load(root)
+
+    def _load(self, XML_element):
+        self.label = XML_element.attrib['label']
+        for child in XML_element:
+            subtree = DecisionTree(child.attrib['label'])
+            self.children[child.attrib['option']] = subtree
+            subtree._load(child)
+
     def render(self, output_file_path=None):
         if output_file_path:
             f = open(output_file_path, 'w')
@@ -110,9 +176,6 @@ class DecisionTree(object):
 
         self._render(self, '')
         self._next_tree_number = 1
-
-        if output_file_path:
-            f.close()
 
     def _render(self, tree, indent):
         if len(tree.children) == 0:
