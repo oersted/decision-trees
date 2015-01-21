@@ -22,7 +22,7 @@ def parse_opts():
     use = False
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "o:muc:rs:")
+        opts, args = getopt.gnu_getopt(sys.argv[1:], "o:muc:rs:")
         if len(args) == 2:
            input_file_path = args[0]
            target_attribute = args[1]
@@ -92,7 +92,6 @@ def get_costs(file_name):
 
     ID3Tree.use_costs = True
     ID3Tree.attribute_costs = costs
-
 
 def choose_algorithm(data, attributes, target_attribute):
     text = "Choose the next attribute that will be used as the pivot (***):\n"
