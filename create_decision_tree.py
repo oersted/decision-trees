@@ -3,17 +3,17 @@ from algorithms.tree import DecisionTree
 from algorithms.id3 import ID3Tree
 
 def parse_opts():
-    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>]\n"
+    usage = "decision_tree.py <inputfile> <target_attribute> [-o <outputfile>] [-m]\n"
     input_file_path = ''
     target_attribute = ''
     output_file_path = ''
     manual_mode = False
 
     try:
-        opts, args = getopt.getopt(sys.argv, "o:ma:")
-        if len(args) == 3:
-           input_file_path = args[1]
-           target_attribute = args[2]
+        opts, args = getopt.gnu_getopt(sys.argv[1:], "mo:")
+        if len(args) == 2:
+           input_file_path = args[0]
+           target_attribute = args[1]
         else:
             raise getopt.GetoptError("You must provide exactly 2 positional arguments.")
     except getopt.GetoptError:
@@ -23,7 +23,7 @@ def parse_opts():
         for opt, arg in opts:
             if opt == '-o':
                 output_file_path = arg
-            elif opt == 'm':
+            elif opt == '-m':
                 manual_mode = True
             else:
                 sys.stderr.write(usage)
@@ -54,7 +54,7 @@ def get_data(input_file_path):
     return (data, header)
 
 def choose_algorithm(data, attributes, target_attribute):
-    text = "Choose the next attribute that will be used as the pivot:\n"
+    text = "Choose the next attribute that will be used as the pivot (***):\n"
     text += "\t1. Choose attribute manually.\n"
     text += "\t2. Continue with ID3."
     text += "\n"
@@ -64,11 +64,9 @@ def choose_algorithm(data, attributes, target_attribute):
     option = DecisionTree.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        new_tree = DecisionTree()
-        return (new_tree, new_tree.manual)
+        return 'manual'
     if option == 2:
-        new_tree = ID3Tree()
-        return (new_tree, new_tree.id3)
+        return 'id3'
 
 def main():
     input_file_path, target_attrib, output_file_path, manual_mode = parse_opts()
@@ -79,16 +77,20 @@ def main():
         sys.exit(2)
     attribs.remove(target_attrib)
 
+    tree = ID3Tree()
     if manual_mode:
-        tree, choose_attrib = choose_algorithm(data, attribs, target_attrib)
+        choose_attrib = choose_algorithm(data, attribs, target_attrib)
     else:
-        tree = ID3Tree()
-        choose_attrib = tree.id3
+        choose_attrib = 'id3'
 
-    loose_ends = tree.extend(data, attribs, target_attrib, choose_attrib)
-    for loose_end in loose_ends:
-        new_tree, new_data, new_attribs = loose_end
-        loose_ends.append(tree.extend(new_data, new_attribs, target_attrib, choose_attrib))
+    loose_ends = tree.extend(data, attribs, target_attrib, getattr(tree, choose_attrib))
+    while len(loose_ends) > 0:
+        new_tree, new_data, new_attribs = loose_ends.pop()
+        if manual_mode:
+            tree.render()
+            choose_attrib = choose_algorithm(data, attribs, target_attrib)
+        loose_ends.extend(new_tree.extend(
+            new_data, new_attribs, target_attrib, getattr(new_tree, choose_attrib)))
 
     tree.render(output_file_path)
 

@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, deque
 import sys
 
 class DecisionTree(object):
@@ -9,7 +9,7 @@ class DecisionTree(object):
         self._next_tree_number = 1
 
     def extend(self, data, attribs, target_attrib, choose_attrib):
-        loose_ends = []
+        loose_ends = deque()
         target_attrib_values = [record[target_attrib] for record in data]
         target_attrib_counter = Counter(target_attrib_values)
         most_common = target_attrib_counter.most_common(1)[0]
@@ -22,16 +22,16 @@ class DecisionTree(object):
             self.label = chosen_attrib
 
             if threshold:
+                option = chosen_attrib[1:5] + ' <= ' + str(threshold)
                 new_tree = self.__class__()
                 self.children[option] = new_tree
-                option = chosen_attrib[1:5] + ' <= ' + str(threshold)
                 rule = lambda x, y: float(x) <= threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
                 loose_ends.append((new_tree, new_data, new_attribs))
 
+                option = chosen_attrib[1:5] + ' > ' + str(threshold)
                 new_tree = self.__class__()
                 self.children[option] = new_tree
-                option = chosen_attribute[1:5] + ' > ' + str(threshold)
                 rule = lambda x, y: float(x) > threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
                 loose_ends.append((new_tree, new_data, new_attribs))
@@ -60,19 +60,20 @@ class DecisionTree(object):
     def manual(self, data, attributes, target_attribute, target_attrib_counter):
         text = "Choose the next attribute that will be used as the pivot:\n"
         for i in range(len(attributes)):
-            text += "%d. %s" % (i, attributes[i])
+            text += "\t%d. %s\n" % (i, attributes[i])
         text += "\n"
+        fail_text = "That's not an option.\n\n"
         conversion = int
         attribs_range = range(len(attributes))
         condition = lambda x: x in attribs_range
-        option = self.__class__._read_option(text, fail_text, conversion, condition)
+        option = self.__class__.read_option(text, fail_text, conversion, condition)
 
         chosen_attribute = attributes[option]
         threshold = None
         if self._is_continuous_attribute(chosen_attribute):
             text = "Choose the threshold on which the continuous attribute will be divided:\n\n"
             conversion = float
-            threshold = self.__class__._read_option(text, fail_text, conversion)
+            threshold = self.__class__.read_option(text, fail_text, conversion)
 
         return (chosen_attribute, threshold)
 
@@ -115,9 +116,15 @@ class DecisionTree(object):
 
     def _render(self, tree, indent):
         if len(tree.children) == 0:
-            self._write(tree.label + '\n')
+            if tree.label:
+                self._write(tree.label + '\n')
+            else:
+                self._write('(***)\n')
         else:
-            self._write(tree.label + ' <' + str(self._next_tree_number) + '>'+ '\n')
+            if tree.label:
+                self._write(tree.label + ' <' + str(self._next_tree_number) + '>'+ '\n')
+            else:
+                self._write('(***) <' + str(self._next_tree_number) + '>'+ '\n')
             self._next_tree_number += 1
 
             count = len(tree.children) - 1

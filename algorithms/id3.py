@@ -9,6 +9,7 @@ class ID3Tree(DecisionTree):
     def __init__(self, *args, **kwargs):
         self.gains = {}
         self._gain_data = []
+        self._stored_gains = []
         super(ID3Tree, self).__init__(*args, **kwargs)
 
     def id3(self, data, attributes, target_attribute, target_atrib_counter):
@@ -84,13 +85,14 @@ class ID3Tree(DecisionTree):
         self._write('\n\n')
         for i in range(len(self._gain_data)):
             if self._gain_data[i]:
-                self._write(str(i + 1) + ':\n')
+                self._write(str(i + 1) + ' (%s):\n' % self._stored_gains[i])
                 for option in self._gain_data[i]:
                     self._write(
                         ' * ' + option + ': ' + str(self._gain_data[i][option]) + '\n')
                 self._write('\n')
 
     def _render(self, tree, indent):
-        if len(tree.children) != 0:
+        if len(tree.children) != 0 and not tree.label in self._stored_gains:
             self._gain_data.append(tree.gains)
+            self._stored_gains.append(tree.label)
         super(ID3Tree, self)._render(tree, indent)
