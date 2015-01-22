@@ -1,4 +1,4 @@
-from collections import Counter, deque
+from collections import Counter
 import xml.etree.ElementTree as ET
 import sys
 from . import utils
@@ -12,7 +12,7 @@ class DecisionTree(object):
         self.children = {}
 
     def first_extend(self, data, attribs, target_attrib, choose_attrib):
-        loose_ends = deque()
+        loose_ends = []
  
         stop, label, counter = self._should_stop_recursion(data, attribs, target_attrib)
 
@@ -24,14 +24,14 @@ class DecisionTree(object):
         return loose_ends
 
     def extend(self, data, attribs, target_attrib, target_attrib_counter, choose_attrib):
-        loose_ends = deque()
+        loose_ends = []
         chosen_attrib, threshold = choose_attrib(
             self, data, attribs, target_attrib, target_attrib_counter)
         self.label = chosen_attrib
         
         if threshold:
             option = chosen_attrib[1:5] + ' <= ' + str(threshold)
-            new_tree = self.__class__('(***)')
+            new_tree = self.__class__()
             self.children[option] = new_tree
             rule = lambda x, y: float(x) <= threshold
             new_data, new_attribs = self._create_new_params(
@@ -43,7 +43,7 @@ class DecisionTree(object):
                 loose_ends.append((self, option, new_tree, new_data, new_attribs, counter))
 
             option = chosen_attrib[1:5] + ' > ' + str(threshold)
-            new_tree = self.__class__('(***)')
+            new_tree = self.__class__()
             self.children[option] = new_tree
             rule = lambda x, y: float(x) > threshold
             new_data, new_attribs = self._create_new_params(
@@ -57,7 +57,7 @@ class DecisionTree(object):
             # conversion to set used to remove duplicates
             chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
             for option in chosen_attrib_options:
-                new_tree = self.__class__('(***)')
+                new_tree = self.__class__()
                 self.children[option] = new_tree
                 new_data, new_attribs = self._create_new_params(
                     data, attribs, chosen_attrib, option)

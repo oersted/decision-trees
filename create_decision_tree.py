@@ -97,6 +97,12 @@ def get_costs(file_name):
     ID3Tree.use_costs = True
     ID3Tree.attribute_costs = costs
 
+def choose_loose_end(count):
+    text = "\nChoose the next node:"
+    fail_text = "That's not a node number."
+    conversion = int
+    condition = lambda x: 0 <= x < count
+    return utils.read_option(text, fail_text, conversion, condition)
 
 def get_algorithm(data, attributes, target_attribute):
     text = "\nChoose the next attribute that will be used as the pivot:\n"
@@ -164,16 +170,26 @@ def main():
     tree = tree_type()
     loose_ends = tree.first_extend(data, attribs, target_attrib, choose_attribute)
     while len(loose_ends) > 0:
-        parent, option, new_tree, new_data, new_attribs, counter = loose_ends.pop()
+        for i in range(len(loose_ends)):
+            loose_ends[i][2].label = '(*%d*)' % i
+
+        i = 0
         if manual_mode:
-            new_tree.label += ' <--'
             render(tree)
+            i = choose_loose_end(len(loose_ends))
+
+        parent, option, new_tree, new_data, new_attribs, counter = loose_ends.pop(i)
+
+        if manual_mode:
             choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
+
         if not isinstance(new_tree, tree_type):
             new_tree = tree_type(new_tree.label)
             parent.children[option] = new_tree
+
         loose_ends.extend(new_tree.extend(
             new_data, new_attribs, target_attrib, counter, choose_attribute))
+
     render(tree, output_file_path)
 
     if save_file_path:
