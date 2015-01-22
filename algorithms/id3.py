@@ -37,7 +37,6 @@ class ID3Tree(DecisionTree):
                 else:
                     count = Counter([record[attribute] for record in data])
                 intrinsic_information = self._entropy(count, len(data))
-                print(threshold)
                 attrib_gain = attrib_gain / intrinsic_information
 
             if ID3Tree.use_costs:

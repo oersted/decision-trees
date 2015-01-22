@@ -69,7 +69,6 @@ def get_data(input_file_path):
             for i in range(len(header)):
                 record[header[i]] = row[i]
             data.append(record)
-    finally:
         f.close()
 
     return (data, header)
@@ -87,7 +86,6 @@ def get_costs(file_name):
         attribute_costs = next(reader)
         for i in range(len(attribute_names)):
             costs[attribute_names[i]] = attribute_costs[i]
-    finally:
         f.close()
 
     ID3Tree.use_costs = True
@@ -130,6 +128,7 @@ def main():
     while len(loose_ends) > 0:
         new_tree, new_data, new_attribs = loose_ends.pop()
         if manual_mode:
+            new_tree.label += ' <--'
             tree.render()
             choose_attrib = choose_algorithm(data, attribs, target_attrib)
         loose_ends.extend(new_tree.extend(

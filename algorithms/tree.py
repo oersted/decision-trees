@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import sys
 
 class DecisionTree(object):
-    def __init__(self, label = None):
+    def __init__(self, label = ''):
         self.label = label
         self.children = {}
         self._write = None
@@ -24,14 +24,14 @@ class DecisionTree(object):
 
             if threshold:
                 option = chosen_attrib[1:5] + ' <= ' + str(threshold)
-                new_tree = self.__class__()
+                new_tree = self.__class__('(***)')
                 self.children[option] = new_tree
                 rule = lambda x, y: float(x) <= threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
                 loose_ends.append((new_tree, new_data, new_attribs))
 
                 option = chosen_attrib[1:5] + ' > ' + str(threshold)
-                new_tree = self.__class__()
+                new_tree = self.__class__('(***)')
                 self.children[option] = new_tree
                 rule = lambda x, y: float(x) > threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
@@ -40,7 +40,7 @@ class DecisionTree(object):
                 # conversion to set used to remove duplicates
                 chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
                 for option in chosen_attrib_options:
-                    new_tree = self.__class__()
+                    new_tree = self.__class__('(***)')
                     self.children[option] = new_tree
                     new_data, new_attribs = self._create_new_params(
                         data, attribs, chosen_attrib, option)
@@ -179,15 +179,9 @@ class DecisionTree(object):
 
     def _render(self, tree, indent):
         if len(tree.children) == 0:
-            if tree.label:
-                self._write(tree.label + '\n')
-            else:
-                self._write('(***)\n')
+            self._write(tree.label + '\n')
         else:
-            if tree.label:
-                self._write(tree.label + ' <' + str(self._next_tree_number) + '>'+ '\n')
-            else:
-                self._write('(***) <' + str(self._next_tree_number) + '>'+ '\n')
+            self._write(tree.label + ' <' + str(self._next_tree_number) + '>'+ '\n')
             self._next_tree_number += 1
 
             count = len(tree.children) - 1
