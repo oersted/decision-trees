@@ -2,6 +2,9 @@ from math import log
 from collections import Counter
 import sys
 
+class InvalidDataError(Exception):
+    pass
+
 def gain(data, target_attribute, target_attrib_entropy, attribute):
     attrib_gain = target_attrib_entropy
     attribute_values = [record[attribute] for record in data]

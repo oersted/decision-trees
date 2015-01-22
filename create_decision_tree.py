@@ -90,8 +90,8 @@ def get_costs(file_name):
             try:
                 costs[attribute_names[i]] = float(attribute_costs[i])
             except ValueError:
-                    sys.stderr.write("The costs file data is not valid.\n")
-                    sys.exit(2)
+                sys.stderr.write("The costs file data is not valid.\n")
+                sys.exit(2)
         f.close()
 
     ID3Tree.use_costs = True
@@ -147,7 +147,8 @@ def process_continous_target_attrib(data, target_attrib):
     return data
 
 def main():
-    input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
+    (input_file_path, target_attrib, output_file_path, save_file_path,
+        costs_file, manual_mode, use) = parse_opts()
     data, attribs = get_data(input_file_path)
 
     if costs_file is not None:
@@ -159,7 +160,12 @@ def main():
     attribs.remove(target_attrib)
 
     if utils.is_continuous_attribute(target_attrib):
-        process_continous_target_attrib(data, target_attrib)
+        try:
+            process_continous_target_attrib(data, target_attrib)
+        except ValueError:
+            sys.stderr.write("Unable to convert continuous data to float values.")
+            sys.exit(2)
+
 
     if manual_mode:
         choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
@@ -168,35 +174,39 @@ def main():
         tree_type = id3.ID3Tree
 
     tree = tree_type()
-    loose_ends = tree.first_extend(data, attribs, target_attrib, choose_attribute)
-    while len(loose_ends) > 0:
-        for i in range(len(loose_ends)):
-            loose_ends[i][2].label = '(*%d*)' % i
+    try:
+        loose_ends = tree.initialize(data, attribs, target_attrib, choose_attribute)
+        while len(loose_ends) > 0:
+            for i in range(len(loose_ends)):
+                loose_ends[i][2].label = '(*%d*)' % i
 
-        i = 0
-        if manual_mode:
-            render(tree)
-            i = choose_loose_end(len(loose_ends))
+            i = 0
+            if manual_mode:
+                render(tree)
+                i = choose_loose_end(len(loose_ends))
 
-        parent, option, new_tree, new_data, new_attribs, counter = loose_ends.pop(i)
+            parent, option, new_tree, new_data, new_attribs, counter = loose_ends.pop(i)
 
-        if manual_mode:
-            choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
+            if manual_mode:
+                choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
 
-        if not isinstance(new_tree, tree_type):
-            new_tree = tree_type(new_tree.label)
-            parent.children[option] = new_tree
+            if not isinstance(new_tree, tree_type):
+                new_tree = tree_type(new_tree.label)
+                parent.children[option] = new_tree
 
-        loose_ends.extend(new_tree.extend(
-            new_data, new_attribs, target_attrib, counter, choose_attribute))
+            loose_ends.extend(new_tree.extend(
+                new_data, new_attribs, target_attrib, counter, choose_attribute))
 
-    render(tree, output_file_path)
+        render(tree, output_file_path)
 
-    if save_file_path:
-        tree.save(save_file_path)
+        if save_file_path:
+            tree.save(save_file_path)
 
-    if use:
-        tree.use()
+        if use:
+            tree.use()
+    except utils.InvalidDataError as e:
+        sys.stderr.write(e.message)
+        sys.exit(2)
 
 if __name__ == '__main__':
     main()

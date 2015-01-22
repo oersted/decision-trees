@@ -11,16 +11,13 @@ class DecisionTree(object):
         self.number = None
         self.children = {}
 
-    def first_extend(self, data, attribs, target_attrib, choose_attrib):
+    def initialize(self, data, attribs, target_attrib, choose_attrib):
         loose_ends = []
- 
         stop, label, counter = self._should_stop_recursion(data, attribs, target_attrib)
-
         if stop:
             self.label = label
         else:
             loose_ends = self.extend(data, attribs, target_attrib, counter, choose_attrib)
-
         return loose_ends
 
     def extend(self, data, attribs, target_attrib, target_attrib_counter, choose_attrib):
@@ -28,7 +25,7 @@ class DecisionTree(object):
         chosen_attrib, threshold = choose_attrib(
             self, data, attribs, target_attrib, target_attrib_counter)
         self.label = chosen_attrib
-        
+
         if threshold:
             option = chosen_attrib[1:5] + ' <= ' + str(threshold)
             new_tree = self.__class__()
@@ -191,7 +188,7 @@ class DecisionTree(object):
         for option in self.children:
             string += self.children[option]._post_render()
         return string
-                
+
 def choose_attribute(tree, data, attributes, target_attribute, target_attrib_counter):
     import id3
     id3_tree = id3.ID3Tree()

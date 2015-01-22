@@ -2,9 +2,6 @@ from collections import Counter
 from .base import DecisionTree
 from . import utils
 
-class InvalidDataError(Exception):
-    pass
-
 class ID3Tree(DecisionTree):
     def __init__(self, *args, **kwargs):
         self.gains = {}
@@ -25,6 +22,7 @@ class ID3Tree(DecisionTree):
 
 def choose_attribute(tree, data, attributes, target_name,
         target_counter, use_gain_ratio=False, costs=None):
+
     target_entropy = utils.entropy(target_counter, len(data))
     max_gain_attribute = ""
     max_gain = None
