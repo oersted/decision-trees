@@ -28,8 +28,16 @@ class ID3Tree(DecisionTree):
                 attrib_gain = self._gain(data, target_attribute, target_attrib_entropy, attribute)
 
             if ID3Tree.use_gain_ratio and attrib_gain > 0:
-                count = Counter([record[attribute] for record in data])
+                if self._is_continuous_attribute(attribute):
+                    count = Counter()
+                    for record in data:
+                        if float(record[attribute]) <= threshold:
+                            count['<='] += 1
+                    count['>'] = len(data) - count['<=']
+                else:
+                    count = Counter([record[attribute] for record in data])
                 intrinsic_information = self._entropy(count, len(data))
+                print(threshold)
                 attrib_gain = attrib_gain / intrinsic_information
 
             if ID3Tree.use_costs:
