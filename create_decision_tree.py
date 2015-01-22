@@ -1,6 +1,6 @@
 import sys, getopt, csv
-from algorithms.tree import DecisionTree
-from algorithms.id3 import ID3Tree
+from algorithms import base
+from algorithms import id3
 import xml.etree.ElementTree as ET
 
 def parse_opts():
@@ -44,7 +44,8 @@ def parse_opts():
             elif opt == '-c':
                 costs_file = arg
             elif opt == '-r':
-                ID3Tree.use_gain_ratio = True
+                # TODO
+                pass
             else:
                 sys.stderr.write(usage)
                 sys.exit(2)
@@ -95,7 +96,7 @@ def get_costs(file_name):
     ID3Tree.use_costs = True
     ID3Tree.attribute_costs = costs
 
-def choose_algorithm(data, attributes, target_attribute):
+def get_algorithm(data, attributes, target_attribute):
     text = "Choose the next attribute that will be used as the pivot (***):\n"
     text += "\t1. Choose attribute manually.\n"
     text += "\t2. Continue with ID3."
@@ -103,12 +104,12 @@ def choose_algorithm(data, attributes, target_attribute):
     fail_text = "That's not an option.\n\n"
     conversion = int
     condition = lambda x: x in (1,2)
-    option = DecisionTree.read_option(text, fail_text, conversion, condition)
+    option = utils.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        return 'manual'
+        return base.choose_attribute
     if option == 2:
-        return 'id3'
+        return id3.choose_attribute
 
 def main():
     input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
@@ -122,21 +123,21 @@ def main():
         sys.exit(2)
     attribs.remove(target_attrib)
 
-    tree = ID3Tree()
+    tree = id3.ID3Tree()
     if manual_mode:
-        choose_attrib = choose_algorithm(data, attribs, target_attrib)
+        choose_attribute = get_algorithm(data, attribs, target_attrib)
     else:
-        choose_attrib = 'id3'
+        choose_attribute = id3.choose_attribute
 
-    loose_ends = tree.extend(data, attribs, target_attrib, getattr(tree, choose_attrib))
+    loose_ends = tree.extend(data, attribs, target_attrib, choose_attribute)
     while len(loose_ends) > 0:
         new_tree, new_data, new_attribs = loose_ends.pop()
         if manual_mode:
             new_tree.label += ' <--'
             tree.render()
-            choose_attrib = choose_algorithm(data, attribs, target_attrib)
+            choose_attribute = choose_algorithm(data, attribs, target_attrib)
         loose_ends.extend(new_tree.extend(
-            new_data, new_attribs, target_attrib, getattr(new_tree, choose_attrib)))
+            new_data, new_attribs, target_attrib, choose_attribute))
 
     tree.render(output_file_path)
 
