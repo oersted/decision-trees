@@ -12,7 +12,7 @@ class ID3Tree(DecisionTree):
 
     def __init__(self, *args, **kwargs):
         self.gains = {}
-        self._gain_data = []
+        self._gain_string = ''
         super(ID3Tree, self).__init__(*args, **kwargs)
 
     def choose_attrib(self, *args):
@@ -104,20 +104,17 @@ class ID3Tree(DecisionTree):
 
         return attrib_gain
 
+    def __str__(self):
+        string = super(ID3Tree, self).__str__() + self._gain_string
+        self._gain_string = ''
+        return string
 
-    def render(self, output_file_path = None):
-        super(ID3Tree, self).render(output_file_path)
-        self._write('\n\n')
-        for i in range(len(self._gain_data)):
-            if self._gain_data[i]:
-                self._write(str(i + 1) + ':\n')
-                for option in self._gain_data[i]:
-                    self._write(
-                        ' * ' + option + ': ' + str(self._gain_data[i][option]) + '\n')
-                self._write('\n')
-        self._gain_data = []
-
-    def _render(self, tree, indent):
-        if len(tree.children) != 0:
-            self._gain_data.append(tree.gains)
-        super(ID3Tree, self)._render(tree, indent)
+    def _render(self, indent):
+        string = ''
+        if len(self.children) != 0:
+            string += str(self.__class__._next_tree_number) + ':\n'
+            for option in self.gains:
+                string += ' * ' + option + ': ' + str(self.gains[option]) + '\n'
+            string += '\n'
+        self._gain_string += string
+        return super(ID3Tree, self)._render(indent)

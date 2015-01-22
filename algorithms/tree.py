@@ -3,11 +3,11 @@ import xml.etree.ElementTree as ET
 import sys
 
 class DecisionTree(object):
+    _next_tree_number = 1
+
     def __init__(self, label = ''):
         self.label = label
         self.children = {}
-        self._write = None
-        self._next_tree_number = 1
 
     def extend(self, data, attribs, target_attrib):
         loose_ends = deque()
@@ -59,7 +59,7 @@ class DecisionTree(object):
         return (new_data, new_attribs)
 
     def choose_attrib(self, *args):
-        return self.manual(*args)
+        return  self.manual(*args)
 
     def _is_continuous_attribute(self, attribute):
         return attribute[0] == '*'
@@ -128,7 +128,7 @@ class DecisionTree(object):
             else:
                 conversion = str
             condition = lambda key: key in self.children
-            value = self.__class__.read_option(text, fail_text, conversion)
+            value = self.__class__.read_option(text, fail_text, conversion, condition)
             if type(value) == str:
                 value = value.strip('\n')
 
@@ -136,17 +136,17 @@ class DecisionTree(object):
                 # There will always be only 2 children
                 options = self.children.keys()
                 if ' <= ' in options[0]:
-                    threshold = float(option[0].split(' <= ')[1])
+                    threshold = float(options[0].split(' <= ')[1])
                     if value <= threshold:
                         self.children[options[0]].use()
                     else:
-                        self.children[option[1]].use()
+                        self.children[options[1]].use()
                 else:
-                    threshold = float(option[1].split(' <= ')[1])
+                    threshold = float(options[1].split(' <= ')[1])
                     if value <= threshold:
                         self.children[options[1]].use()
                     else:
-                        self.children[option[0]].use()
+                        self.children[options[0]].use()
             else:
                 self.children[value].use()
 
@@ -181,34 +181,31 @@ class DecisionTree(object):
             self.children[child.attrib['option']] = subtree
             subtree._load(child)
 
-    def render(self, output_file_path=None):
-        if output_file_path:
-            f = open(output_file_path, 'w')
-            self._write = f.write
+    def __str__(self):     
+        string = self._render('')
+        self.__class__._next_tree_number = 1
+        return string
+
+    def _render(self, indent):
+        string = ''
+        if len(self.children) == 0:
+            string += self.label + '\n'
         else:
-            self._write = sys.stdout.write
+            string += self.label + ' <' + str(self.__class__._next_tree_number) + '>'+ '\n'
+            self.__class__._next_tree_number += 1
 
-        self._render(self, '')
-        self._next_tree_number = 1
-
-    def _render(self, tree, indent):
-        if len(tree.children) == 0:
-            self._write(tree.label + '\n')
-        else:
-            self._write(tree.label + ' <' + str(self._next_tree_number) + '>'+ '\n')
-            self._next_tree_number += 1
-
-            count = len(tree.children) - 1
-            for option in tree.children:
-                self._write(indent)
+            count = len(self.children) - 1
+            for option in self.children:
+                string += indent
                 if count == 0:
-                    self._write('\\-')
+                    string += '\\-'
                     new_indent = indent + (len(option)+5)*' '
                 else:
-                    self._write('|-')
+                    string += '|-'
                     new_indent = indent + '|' + (len(option)+4)*' '
 
-                self._write(option + '-->')
+                string += option + '-->'
 
                 count -= 1
-                self._render(tree.children[option], new_indent)
+                string += self.children[option]._render(new_indent)
+        return string

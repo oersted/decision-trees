@@ -111,6 +111,14 @@ def choose_algorithm(data, attributes, target_attribute):
     elif option == 3:
         return (ID3Tree, False)
 
+def render(tree, output_file_path = None):
+    if output_file_path:
+        f = open(output_file_path, 'w')
+        f.write(str(tree))
+        f.close()
+    else:
+        sys.stdout.write(str(tree))
+
 def main():
     input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
     data, attribs = get_data(input_file_path)
@@ -135,15 +143,15 @@ def main():
         parent, option, new_tree, new_data, new_attribs = loose_ends.pop()
         if manual_mode:
             new_tree.label += ' <--'
-            tree.render()
+            render(tree)
             tree_type, manual_mode = choose_algorithm(
                 data, attribs, target_attrib)
-            if not isinstance(new_tree, tree_type):
-                new_tree = tree_type(new_tree.label)
-                parent.children[option] = new_tree
+        if not isinstance(new_tree, tree_type):
+            new_tree = tree_type(new_tree.label)
+            parent.children[option] = new_tree
         loose_ends.extend(new_tree.extend(new_data, new_attribs, target_attrib))
 
-    tree.render(output_file_path)
+    render(tree, output_file_path)
 
     if save_file_path:
         tree.save(save_file_path)
