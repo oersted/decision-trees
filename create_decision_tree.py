@@ -98,7 +98,7 @@ def get_costs(file_name):
     ID3Tree.attribute_costs = costs
 
 def choose_loose_end(count):
-    text = "\nChoose the next node:"
+    text = "\nChoose the next node: "
     fail_text = "That's not a node number."
     conversion = int
     condition = lambda x: 0 <= x < count

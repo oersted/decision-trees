@@ -193,10 +193,19 @@ class DecisionTree(object):
         return string
                 
 def choose_attribute(tree, data, attributes, target_attribute, target_attrib_counter):
+    import id3
+    id3_tree = id3.ID3Tree()
+    id3_attrib, threshold = id3.choose_attribute(
+        id3_tree, data, attributes, target_attribute, target_attrib_counter)
+
     text = "\nChoose the next attribute that will be used as the pivot:\n"
     for i in range(len(attributes)):
-        text += "\t%d. %s\n" % (i, attributes[i])
+        text += "\t%d. %s (%f)" % (i, attributes[i], id3_tree.gains[attributes[i]])
+        if attributes[i] == id3_attrib:
+            text += ' [ID3]'
+        text += '\n'
     text += "\n"
+
     fail_text = "That's not an option.\n\n"
     conversion = int
     attribs_range = range(len(attributes))
