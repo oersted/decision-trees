@@ -28,14 +28,14 @@ class DecisionTree(object):
                 self.children[option] = new_tree
                 rule = lambda x, y: float(x) <= threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
-                loose_ends.append((new_tree, new_data, new_attribs))
+                loose_ends.append((self, option, new_tree, new_data, new_attribs))
 
                 option = chosen_attrib[1:5] + ' > ' + str(threshold)
                 new_tree = self.__class__('(***)')
                 self.children[option] = new_tree
                 rule = lambda x, y: float(x) > threshold
                 new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
-                loose_ends.append((new_tree, new_data, new_attribs))
+                loose_ends.append((self, option, new_tree, new_data, new_attribs))
             else:
                 # conversion to set used to remove duplicates
                 chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
@@ -44,7 +44,7 @@ class DecisionTree(object):
                     self.children[option] = new_tree
                     new_data, new_attribs = self._create_new_params(
                         data, attribs, chosen_attrib, option)
-                    loose_ends.append((new_tree, new_data, new_attribs))
+                    loose_ends.append((self, option, new_tree, new_data, new_attribs))
 
         return loose_ends
 

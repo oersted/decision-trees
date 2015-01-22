@@ -1,7 +1,6 @@
 import sys, getopt, csv
 from algorithms.tree import DecisionTree
 from algorithms.id3 import ID3Tree
-import xml.etree.ElementTree as ET
 
 def parse_opts():
     usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]"
@@ -18,7 +17,6 @@ def parse_opts():
     save_file_path = None
     costs_file = None
     manual_mode = False
-    gain_rate = False
     use = False
 
     try:
@@ -102,9 +100,9 @@ def choose_algorithm(data, attributes, target_attribute):
     option = DecisionTree.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        return 'manual'
+        return ('manual', DecisionTree)
     if option == 2:
-        return 'id3'
+        return ('id3', ID3Tree)
 
 def main():
     input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
@@ -126,11 +124,14 @@ def main():
 
     loose_ends = tree.extend(data, attribs, target_attrib, getattr(tree, choose_attrib))
     while len(loose_ends) > 0:
-        new_tree, new_data, new_attribs = loose_ends.pop()
+        parent, option, new_tree, new_data, new_attribs = loose_ends.pop()
         if manual_mode:
             new_tree.label += ' <--'
             tree.render()
-            choose_attrib = choose_algorithm(data, attribs, target_attrib)
+            choose_attrib, tree_type = choose_algorithm(data, attribs, target_attrib)
+            if isinstance(new_tree, tree_type):
+                new_tree = tree_type(new_tree.label)
+                parent.children[option] = new_tree
         loose_ends.extend(new_tree.extend(
             new_data, new_attribs, target_attrib, getattr(new_tree, choose_attrib)))
 
