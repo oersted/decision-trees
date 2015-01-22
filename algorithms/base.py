@@ -1,6 +1,7 @@
 from collections import Counter, deque
 import xml.etree.ElementTree as ET
 import sys
+from . import utils
 
 class DecisionTree(object):
     _next_tree_number = 1
@@ -9,7 +10,7 @@ class DecisionTree(object):
         self.label = label
         self.children = {}
 
-    def extend(self, data, attribs, target_attrib):
+    def extend(self, data, attribs, target_attrib, choose_attrib):
         loose_ends = deque()
         if not data:
             return loose_ends
@@ -21,10 +22,11 @@ class DecisionTree(object):
         if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
             self.label = most_common[0] + ' %' + str((float(most_common[1])/len(target_attrib_values)) * 100)
         else:
-            chosen_attrib, threshold = self.choose_attrib(
+            chosen_attrib, threshold, gains = choose_attrib(
                 data, attribs, target_attrib, target_attrib_counter)
             self.label = chosen_attrib
-
+            self.gains = gains
+            
             if threshold:
                 option = chosen_attrib[1:5] + ' <= ' + str(threshold)
                 new_tree = self.__class__('(***)')
@@ -58,64 +60,6 @@ class DecisionTree(object):
 
         return (new_data, new_attribs)
 
-    def choose_attrib(self, *args):
-        return  self.manual(*args)
-
-    def _is_continuous_attribute(self, attribute):
-        return attribute[0] == '*'
-
-    def manual(self, data, attributes, target_attribute, target_attrib_counter):
-        from id3 import ID3Tree
-        id3_tree = ID3Tree()
-        id3_attrib, threshold = id3_tree.id3(
-            data, attributes, target_attribute, target_attrib_counter)
-
-        text = "Choose the next attribute that will be used as the pivot:\n"
-        for i in range(len(attributes)):
-            text += "\t%d. %s (%f)" % (i, attributes[i], id3_tree.gains[attributes[i]])
-            if attributes[i] == id3_attrib:
-                text += ' ID3'
-            text += '\n'
-        text += "\n"
-        fail_text = "That's not an option.\n\n"
-        conversion = int
-        attribs_range = range(len(attributes))
-        condition = lambda x: x in attribs_range
-        option = self.__class__.read_option(text, fail_text, conversion, condition)
-
-        chosen_attribute = attributes[option]
-        threshold = None
-        if self._is_continuous_attribute(chosen_attribute):
-            text = "Choose the threshold on which the continuous attribute will be divided:\n\n"
-            conversion = float
-            threshold = self.__class__.read_option(text, fail_text, conversion)
-
-        return (chosen_attribute, threshold)
-
-    @classmethod
-    def read_option(self, text = None, fail_text = None, conversion = None, condition = None):
-        while True:
-            if text:
-                sys.stdout.write(text)
-            option = sys.stdin.readline()
-            if conversion:
-                try:
-                    option = conversion(option)
-                except:
-                    if fail_text:
-                        sys.stdout.write(fail_text)
-                else:
-                    if condition:
-                        if condition(option):
-                            break
-                        else:
-                            if fail_text:
-                                sys.stdout.write(fail_text)
-                    else:
-                        break
-
-        return option
-
     def use(self):
         if len(self.children) == 0:
             sys.stdout.write("\nResult: " + self.label + '\n')
@@ -123,16 +67,16 @@ class DecisionTree(object):
             attrib = self.label
             text = "\nGive the value of attribute %s:\n" % attrib
             fail_text = "Not a valid value.\n"
-            if self._is_continuous_attribute(attrib):
+            if utils.is_continuous_attribute(attrib):
                 conversion = float
             else:
                 conversion = str
             condition = lambda key: key in self.children
-            value = self.__class__.read_option(text, fail_text, conversion, condition)
+            value = utils.read_option(text, fail_text, conversion)
             if type(value) == str:
                 value = value.strip('\n')
 
-            if self._is_continuous_attribute(attrib):
+            if utils.is_continuous_attribute(attrib):
                 # There will always be only 2 children
                 options = self.children.keys()
                 if ' <= ' in options[0]:
@@ -209,3 +153,23 @@ class DecisionTree(object):
                 count -= 1
                 string += self.children[option]._render(new_indent)
         return string
+                
+def chose_attribute(data, attributes, target_attribute, target_attrib_counter):
+    text = "Choose the next attribute that will be used as the pivot:\n"
+    for i in range(len(attributes)):
+        text += "\t%d. %s\n" % (i, attributes[i])
+    text += "\n"
+    fail_text = "That's not an option.\n\n"
+    conversion = int
+    attribs_range = range(len(attributes))
+    condition = lambda x: x in attribs_range
+    option = utils.read_option(text, fail_text, conversion, condition)
+
+    chosen_attribute = attributes[option]
+    threshold = None
+    if utils.is_continuous_attribute(chosen_attribute):
+        text = "Choose the threshold on which the continuous attribute will be divided:\n\n"
+        conversion = float
+        threshold = utils.read_option(text, fail_text, conversion)
+
+    return (chosen_attribute, threshold)

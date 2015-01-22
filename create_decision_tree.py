@@ -1,9 +1,11 @@
 import sys, getopt, csv
-from algorithms.tree import DecisionTree
-from algorithms.id3 import ID3Tree
+from algorithms import base
+from algorithms import id3
+from algorithms import utils
+import xml.etree.ElementTree as ET
 
 def parse_opts():
-    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]"
+    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>] "
         "[-c <costs_file>] [-m] [-r] [-u] <inputfile> <target_attribute>\n"
         "  -o     use <outputfile> instead stdin\n"
         "  -s     save resulting tree in <savefile> as XML\n"
@@ -42,7 +44,8 @@ def parse_opts():
             elif opt == '-c':
                 costs_file = arg
             elif opt == '-r':
-                ID3Tree.use_gain_ratio = True
+                # TODO
+                pass
             else:
                 sys.stderr.write(usage)
                 sys.exit(2)
@@ -93,8 +96,9 @@ def get_costs(file_name):
     ID3Tree.use_costs = True
     ID3Tree.attribute_costs = costs
 
-def choose_algorithm(data, attributes, target_attribute):
-    text = "Choose the next attribute that will be used as the pivot:\n"
+
+def get_algorithm(data, attributes, target_attribute):
+    text = "Choose the next attribute that will be used as the pivot (***):\n"
     text += "\t1. Choose attribute manually.\n"
     text += "\t2. Use ID3.\n"
     text += "\t3. Continue with ID3.\n"
@@ -102,14 +106,14 @@ def choose_algorithm(data, attributes, target_attribute):
     fail_text = "That's not an option.\n\n"
     conversion = int
     condition = lambda x: x in (1,2,3)
-    option = DecisionTree.read_option(text, fail_text, conversion, condition)
+    option = utils.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        return (DecisionTree, True)
+        return (base.choose_attribute, True)
     elif option == 2:
-        return (ID3Tree, True)
+        return (id3.choose_attribute, True)
     elif option == 3:
-        return (ID3Tree, False)
+        return (id3.choose_attribute, False)
 
 def render(tree, output_file_path = None):
     if output_file_path:
@@ -131,26 +135,22 @@ def main():
         sys.exit(2)
     attribs.remove(target_attrib)
 
+    tree = id3.ID3Tree()
     if manual_mode:
-        tree_type, manual_mode = choose_algorithm(data, attribs, target_attrib)
+        choose_attribute, manual_mode = get_algorithm(data, attribs, target_attrib)
     else:
-        choose_attrib = 'id3'
-        tree_type = ID3Tree
+        choose_attribute = id3.choose_attribute
 
-    tree = tree_type()
-    loose_ends = tree.extend(data, attribs, target_attrib)
+    loose_ends = tree.extend(data, attribs, target_attrib, choose_attribute)
+    
     while len(loose_ends) > 0:
         parent, option, new_tree, new_data, new_attribs = loose_ends.pop()
         if manual_mode:
             new_tree.label += ' <--'
             render(tree)
-            tree_type, manual_mode = choose_algorithm(
-                data, attribs, target_attrib)
-        if not isinstance(new_tree, tree_type):
-            new_tree = tree_type(new_tree.label)
-            parent.children[option] = new_tree
-        loose_ends.extend(new_tree.extend(new_data, new_attribs, target_attrib))
-
+            choose_attribute, manual_mode = get_algorithm(data, attribs, target_attrib)
+        loose_ends.extend(new_tree.extend(
+            new_data, new_attribs, target_attrib, choose_attribute))
     render(tree, output_file_path)
 
     if save_file_path:
