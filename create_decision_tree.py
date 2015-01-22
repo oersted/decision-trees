@@ -45,8 +45,7 @@ def parse_opts():
             elif opt == '-c':
                 costs_file = arg
             elif opt == '-r':
-                # TODO
-                pass
+                id3.use_gain_ratio = True
             else:
                 sys.stderr.write(usage)
                 sys.exit(2)
@@ -94,8 +93,7 @@ def get_costs(file_name):
                 sys.exit(2)
         f.close()
 
-    ID3Tree.use_costs = True
-    ID3Tree.attribute_costs = costs
+    id3.attribute_costs = costs
 
 def choose_loose_end(count):
     text = "\nChoose the next node: "
