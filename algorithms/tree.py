@@ -16,7 +16,7 @@ class DecisionTree(object):
         most_common = target_attrib_counter.most_common(1)[0]
 
         if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
-            self.label = most_common[0]
+            self.label = most_common[0] + ' %' + str((float(most_common[1])/len(target_attrib_values)) * 100)
         else:
             chosen_attrib, threshold = choose_attrib(
                 data, attribs, target_attrib, target_attrib_counter)
