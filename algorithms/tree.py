@@ -9,7 +9,7 @@ class DecisionTree(object):
         self._write = None
         self._next_tree_number = 1
 
-    def extend(self, data, attribs, target_attrib, choose_attrib):
+    def extend(self, data, attribs, target_attrib):
         loose_ends = deque()
         if not data:
             return loose_ends
@@ -21,7 +21,7 @@ class DecisionTree(object):
         if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
             self.label = most_common[0] + ' %' + str((float(most_common[1])/len(target_attrib_values)) * 100)
         else:
-            chosen_attrib, threshold = choose_attrib(
+            chosen_attrib, threshold = self.choose_attrib(
                 data, attribs, target_attrib, target_attrib_counter)
             self.label = chosen_attrib
 
@@ -58,13 +58,24 @@ class DecisionTree(object):
 
         return (new_data, new_attribs)
 
+    def choose_attrib(self, *args):
+        return self.manual(*args)
+
     def _is_continuous_attribute(self, attribute):
         return attribute[0] == '*'
 
     def manual(self, data, attributes, target_attribute, target_attrib_counter):
+        from id3 import ID3Tree
+        id3_tree = ID3Tree()
+        id3_attrib, threshold = id3_tree.id3(
+            data, attributes, target_attribute, target_attrib_counter)
+
         text = "Choose the next attribute that will be used as the pivot:\n"
         for i in range(len(attributes)):
-            text += "\t%d. %s\n" % (i, attributes[i])
+            text += "\t%d. %s (%f)" % (i, attributes[i], id3_tree.gains[attributes[i]])
+            if attributes[i] == id3_attrib:
+                text += ' ID3'
+            text += '\n'
         text += "\n"
         fail_text = "That's not an option.\n\n"
         conversion = int

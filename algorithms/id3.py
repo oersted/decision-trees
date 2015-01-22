@@ -15,6 +15,9 @@ class ID3Tree(DecisionTree):
         self._gain_data = []
         super(ID3Tree, self).__init__(*args, **kwargs)
 
+    def choose_attrib(self, *args):
+        return self.id3(*args)
+
     def id3(self, data, attributes, target_attribute, target_atrib_counter):
         target_attrib_entropy = self._entropy(target_atrib_counter, len(data))
         max_gain_attribute = ""
