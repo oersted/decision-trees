@@ -20,6 +20,7 @@ class ID3Tree(DecisionTree):
         max_gain_attribute = ""
         max_gain = None
         threshold = None
+        max_threshold = None
         for attribute in attributes:
             if self._is_continuous_attribute(attribute):
                 attrib_gain, threshold = self._continuous_gain(data, target_attribute,
@@ -40,14 +41,15 @@ class ID3Tree(DecisionTree):
                 attrib_gain = attrib_gain / intrinsic_information
 
             if ID3Tree.use_costs:
-                attrib_gain = attrib_gain**2/attibute_costs[attibute]
+                attrib_gain = attrib_gain**2/ID3Tree.attribute_costs[attribute]
 
             if max_gain == None or attrib_gain > max_gain:
                 max_gain_attribute = attribute
                 max_gain = attrib_gain
+                max_threshold = threshold
             self.gains[attribute] = attrib_gain
 
-        return (max_gain_attribute, threshold)
+        return (max_gain_attribute, max_threshold)
 
     def _entropy(self, count, total):
         entropy = 0

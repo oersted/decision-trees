@@ -11,6 +11,9 @@ class DecisionTree(object):
 
     def extend(self, data, attribs, target_attrib, choose_attrib):
         loose_ends = deque()
+        if not data:
+            return loose_ends
+
         target_attrib_values = [record[target_attrib] for record in data]
         target_attrib_counter = Counter(target_attrib_values)
         most_common = target_attrib_counter.most_common(1)[0]
