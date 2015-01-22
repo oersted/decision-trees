@@ -3,6 +3,7 @@ from algorithms import base
 from algorithms import id3
 from algorithms import utils
 import xml.etree.ElementTree as ET
+from math import log10, floor, ceil
 
 def parse_opts():
     usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>] "
@@ -123,6 +124,22 @@ def render(tree, output_file_path = None):
     else:
         sys.stdout.write(str(tree))
 
+def process_continous_target_attrib(data, target_attrib):
+    data.sort(key=lambda record: float(record[target_attrib]))
+    group_count = 1 + 3.322 * log10(len(data)) # Struges
+    max_value = int(ceil(float(data[-1][target_attrib])))
+    min_value = int(floor(float(data[0][target_attrib])))
+    target_range = max_value - min_value
+    range_width = int(target_range/group_count)
+
+    i = 0
+    for r in range(min_value, max_value, range_width):
+        while i < len(data) and r <= float(data[i][target_attrib]) < r + range_width:
+            data[i][target_attrib] = '(%d,%d)' % (r, r + range_width)
+            i += 1
+
+    return data
+
 def main():
     input_file_path, target_attrib, output_file_path, save_file_path, costs_file, manual_mode, use = parse_opts()
     data, attribs = get_data(input_file_path)
@@ -134,6 +151,9 @@ def main():
         sys.stderr.write("The target attribute doesn't exist.\n")
         sys.exit(2)
     attribs.remove(target_attrib)
+
+    if utils.is_continuous_attribute(target_attrib):
+        process_continous_target_attrib(data, target_attrib)
 
     if manual_mode:
         choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
