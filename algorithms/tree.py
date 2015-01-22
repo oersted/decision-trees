@@ -11,11 +11,14 @@ class DecisionTree(object):
 
     def extend(self, data, attribs, target_attrib, choose_attrib):
         loose_ends = deque()
+        if not data:
+            return loose_ends
+
         target_attrib_values = [record[target_attrib] for record in data]
         target_attrib_counter = Counter(target_attrib_values)
         most_common = target_attrib_counter.most_common(1)[0]
 
-        if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
+        if len(attribs) == 0 or most_common[1] == len(target_attrib_values):
             self.label = most_common[0]
         else:
             chosen_attrib, threshold = choose_attrib(

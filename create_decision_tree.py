@@ -86,7 +86,11 @@ def get_costs(file_name):
         attribute_names = next(reader)
         attribute_costs = next(reader)
         for i in range(len(attribute_names)):
-            costs[attribute_names[i]] = attribute_costs[i]
+            try:
+                costs[attribute_names[i]] = float(attribute_costs[i])
+            except ValueError:
+                    sys.stderr.write("The costs file data is not valid.\n")
+                    sys.exit(2)
     finally:
         f.close()
 
