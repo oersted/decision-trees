@@ -8,50 +8,78 @@ class DecisionTree(object):
 
     def __init__(self, label = ''):
         self.label = label
+        self.number = None
         self.children = {}
 
-    def extend(self, data, attribs, target_attrib, choose_attrib):
+    def first_extend(self, data, attribs, target_attrib, choose_attrib):
         loose_ends = deque()
-        if not data:
-            return loose_ends
+ 
+        stop, label, counter = self._should_stop_recursion(data, attribs, target_attrib)
 
-        target_attrib_values = [record[target_attrib] for record in data]
-        target_attrib_counter = Counter(target_attrib_values)
-        most_common = target_attrib_counter.most_common(1)[0]
-
-        if not data or len(attribs) == 0 or most_common[1] == len(target_attrib_values):
-            self.label = most_common[0] + ' %' + str((float(most_common[1])/len(target_attrib_values)) * 100)
+        if stop:
+            self.label = label
         else:
-            chosen_attrib, threshold, gains = choose_attrib(
-                data, attribs, target_attrib, target_attrib_counter)
-            self.label = chosen_attrib
-            self.gains = gains
-            
-            if threshold:
-                option = chosen_attrib[1:5] + ' <= ' + str(threshold)
-                new_tree = self.__class__('(***)')
-                self.children[option] = new_tree
-                rule = lambda x, y: float(x) <= threshold
-                new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
-                loose_ends.append((self, option, new_tree, new_data, new_attribs))
-
-                option = chosen_attrib[1:5] + ' > ' + str(threshold)
-                new_tree = self.__class__('(***)')
-                self.children[option] = new_tree
-                rule = lambda x, y: float(x) > threshold
-                new_data, new_attribs = self._create_new_params(data, attribs, chosen_attrib, option, rule)
-                loose_ends.append((self, option, new_tree, new_data, new_attribs))
-            else:
-                # conversion to set used to remove duplicates
-                chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
-                for option in chosen_attrib_options:
-                    new_tree = self.__class__('(***)')
-                    self.children[option] = new_tree
-                    new_data, new_attribs = self._create_new_params(
-                        data, attribs, chosen_attrib, option)
-                    loose_ends.append((self, option, new_tree, new_data, new_attribs))
+            loose_ends = self.extend(data, attribs, target_attrib, counter, choose_attrib)
 
         return loose_ends
+
+    def extend(self, data, attribs, target_attrib, target_attrib_counter, choose_attrib):
+        loose_ends = deque()
+        chosen_attrib, threshold = choose_attrib(
+            self, data, attribs, target_attrib, target_attrib_counter)
+        self.label = chosen_attrib
+        
+        if threshold:
+            option = chosen_attrib[1:5] + ' <= ' + str(threshold)
+            new_tree = self.__class__('(***)')
+            self.children[option] = new_tree
+            rule = lambda x, y: float(x) <= threshold
+            new_data, new_attribs = self._create_new_params(
+                data, attribs, chosen_attrib, option, rule)
+            stop, label, counter = self._should_stop_recursion(new_data, new_attribs, target_attrib)
+            if stop:
+                new_tree.label = label
+            else:
+                loose_ends.append((self, option, new_tree, new_data, new_attribs, counter))
+
+            option = chosen_attrib[1:5] + ' > ' + str(threshold)
+            new_tree = self.__class__('(***)')
+            self.children[option] = new_tree
+            rule = lambda x, y: float(x) > threshold
+            new_data, new_attribs = self._create_new_params(
+                data, attribs, chosen_attrib, option, rule)
+            stop, label, counter = self._should_stop_recursion(new_data, new_attribs, target_attrib)
+            if stop:
+                new_tree.label = label
+            else:
+                loose_ends.append((self, option, new_tree, new_data, new_attribs, counter))
+        else:
+            # conversion to set used to remove duplicates
+            chosen_attrib_options = list(set([record[chosen_attrib] for record in data]))
+            for option in chosen_attrib_options:
+                new_tree = self.__class__('(***)')
+                self.children[option] = new_tree
+                new_data, new_attribs = self._create_new_params(
+                    data, attribs, chosen_attrib, option)
+                stop, label, counter = self._should_stop_recursion(new_data, new_attribs, target_attrib)
+                if stop:
+                    new_tree.label = label
+                else:
+                    loose_ends.append((self, option, new_tree, new_data, new_attribs, counter))
+
+        return loose_ends
+
+    def _should_stop_recursion(self, data, attribs, target_attrib):
+        if not data:
+            return (True, 'Unknown', None)
+        else:
+            target_attrib_values = [record[target_attrib] for record in data]
+            target_attrib_counter = Counter(target_attrib_values)
+            most_common = target_attrib_counter.most_common(1)[0]
+
+            return (len(attribs) == 0 or most_common[1] == len(target_attrib_values),
+                most_common[0] + ' %' + str((float(most_common[1])/len(target_attrib_values)) * 100),
+                target_attrib_counter)
 
     def _create_new_params(self, data, attribs, chosen_attrib, option, rule = lambda x, y: x == y):
         new_data = [record for record in data if rule(record[chosen_attrib], option)]
@@ -125,9 +153,12 @@ class DecisionTree(object):
             self.children[child.attrib['option']] = subtree
             subtree._load(child)
 
-    def __str__(self):     
-        string = self._render('')
+    def __str__(self):
+        string = '\n'
+        string += self._render('')
         self.__class__._next_tree_number = 1
+        string += self._post_render()
+        string += '\n'
         return string
 
     def _render(self, indent):
@@ -136,6 +167,7 @@ class DecisionTree(object):
             string += self.label + '\n'
         else:
             string += self.label + ' <' + str(self.__class__._next_tree_number) + '>'+ '\n'
+            self.number = self.__class__._next_tree_number
             self.__class__._next_tree_number += 1
 
             count = len(self.children) - 1
@@ -153,9 +185,15 @@ class DecisionTree(object):
                 count -= 1
                 string += self.children[option]._render(new_indent)
         return string
+
+    def _post_render(self):
+        string = ''
+        for option in self.children:
+            string += self.children[option]._post_render()
+        return string
                 
-def chose_attribute(data, attributes, target_attribute, target_attrib_counter):
-    text = "Choose the next attribute that will be used as the pivot:\n"
+def choose_attribute(tree, data, attributes, target_attribute, target_attrib_counter):
+    text = "\nChoose the next attribute that will be used as the pivot:\n"
     for i in range(len(attributes)):
         text += "\t%d. %s\n" % (i, attributes[i])
     text += "\n"

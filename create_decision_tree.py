@@ -98,7 +98,7 @@ def get_costs(file_name):
 
 
 def get_algorithm(data, attributes, target_attribute):
-    text = "Choose the next attribute that will be used as the pivot (***):\n"
+    text = "\nChoose the next attribute that will be used as the pivot:\n"
     text += "\t1. Choose attribute manually.\n"
     text += "\t2. Use ID3.\n"
     text += "\t3. Continue with ID3.\n"
@@ -109,11 +109,11 @@ def get_algorithm(data, attributes, target_attribute):
     option = utils.read_option(text, fail_text, conversion, condition)
 
     if option == 1:
-        return (base.choose_attribute, True)
+        return (base.choose_attribute, base.DecisionTree, True)
     elif option == 2:
-        return (id3.choose_attribute, True)
+        return (id3.choose_attribute, id3.ID3Tree, True)
     elif option == 3:
-        return (id3.choose_attribute, False)
+        return (id3.choose_attribute, id3.ID3Tree, False)
 
 def render(tree, output_file_path = None):
     if output_file_path:
@@ -135,22 +135,25 @@ def main():
         sys.exit(2)
     attribs.remove(target_attrib)
 
-    tree = id3.ID3Tree()
     if manual_mode:
-        choose_attribute, manual_mode = get_algorithm(data, attribs, target_attrib)
+        choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
     else:
         choose_attribute = id3.choose_attribute
+        tree_type = id3.ID3Tree
 
-    loose_ends = tree.extend(data, attribs, target_attrib, choose_attribute)
-    
+    tree = tree_type()
+    loose_ends = tree.first_extend(data, attribs, target_attrib, choose_attribute)
     while len(loose_ends) > 0:
-        parent, option, new_tree, new_data, new_attribs = loose_ends.pop()
+        parent, option, new_tree, new_data, new_attribs, counter = loose_ends.pop()
         if manual_mode:
             new_tree.label += ' <--'
             render(tree)
-            choose_attribute, manual_mode = get_algorithm(data, attribs, target_attrib)
+            choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
+        if not isinstance(new_tree, tree_type):
+            new_tree = tree_type(new_tree.label)
+            parent.children[option] = new_tree
         loose_ends.extend(new_tree.extend(
-            new_data, new_attribs, target_attrib, choose_attribute))
+            new_data, new_attribs, target_attrib, counter, choose_attribute))
     render(tree, output_file_path)
 
     if save_file_path:

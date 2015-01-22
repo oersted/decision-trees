@@ -8,26 +8,23 @@ class InvalidDataError(Exception):
 class ID3Tree(DecisionTree):
     def __init__(self, *args, **kwargs):
         self.gains = {}
-        self._gain_string = ''
         super(ID3Tree, self).__init__(*args, **kwargs)
 
-    def __str__(self):
-        string = super(ID3Tree, self).__str__() + self._gain_string
-        self._gain_string = ''
-        return string
-
-    def _render(self, indent):
+    def _post_render(self):
         string = ''
         if len(self.children) != 0:
-            string += str(self.__class__._next_tree_number) + ':\n'
+            string += '\n'
+            string += str(self.number) + ':\n'
             for option in self.gains:
                 string += ' * ' + option + ': ' + str(self.gains[option]) + '\n'
-            string += '\n'
-        self._gain_string += string
-        return super(ID3Tree, self)._render(indent)
 
-def choose_attribute(data, attributes, target_name,
-                         target_counter, use_gain_ratio=False, costs=None):
+        for child in self.children.values():
+            string += child._post_render()
+
+        return string
+
+def choose_attribute(tree, data, attributes, target_name,
+        target_counter, use_gain_ratio=False, costs=None):
     target_entropy = utils.entropy(target_counter, len(data))
     max_gain_attribute = ""
     max_gain = None
@@ -61,5 +58,6 @@ def choose_attribute(data, attributes, target_name,
             max_gain = attrib_gain
             max_threshold = threshold
         gains[attribute] = attrib_gain
+    tree.gains = gains
 
-    return (max_gain_attribute, max_threshold, gains)
+    return (max_gain_attribute, max_threshold)
