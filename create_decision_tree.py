@@ -28,8 +28,9 @@ def parse_opts():
            input_file_path = args[0]
            target_attribute = args[1]
         else:
-            raise getopt.GetoptError("You must provide exactly 2 positional arguments.")
-    except getopt.GetoptError:
+            raise getopt.GetoptError("You must provide exactly 2 positional arguments.\n")
+    except getopt.GetoptError as e:
+        sys.stderr.write(str(e))
         sys.stderr.write(usage)
         sys.exit(2)
     else:
@@ -59,11 +60,16 @@ def get_data(input_file_path):
     try:
         f = open(input_file_path, 'r')
     except:
-        sys.stderr.write("The input file couln't be opened.\n")
+        sys.stderr.write("The input file couldn't be opened.\n")
         sys.exit(2)
     else:
         reader = csv.reader(f)
-        header = next(reader)
+
+        try:
+            header = next(reader)
+        except:
+            sys.stderr.write("Empty input file.\n")
+            sys.exit(2)
 
         for row in reader:
             record = {}
@@ -79,11 +85,17 @@ def get_costs(file_name, attribs):
     try:
         f = open(file_name, 'r')
     except:
-        sys.stderr.write("The costs file couln't be opened.\n")
+        sys.stderr.write("The costs file couldn't be opened.\n")
         sys.exit(2)
     else:
         reader = csv.reader(f)
-        attribute_names = next(reader)
+
+        try:
+            attribute_names = next(reader)
+        except:
+            sys.stderr.write("Empty costs file.\n")
+            sys.exit(2)
+
         if attribute_names != attribs:
             sys.stderr.write("The costs file data is not valid.\n")
             sys.exit(2)

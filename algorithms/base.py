@@ -85,39 +85,21 @@ class DecisionTree(object):
 
         return (new_data, new_attribs)
 
-    def use(self):
+    def use(self, record):
         if len(self.children) == 0:
-            sys.stdout.write("\nResult: " + self.label + '\n')
+                return self
         else:
-            attrib = self.label
-            text = "\nGive the value of attribute <%s>:\n" % attrib
-            fail_text = "Not a valid value.\n"
-            if utils.is_continuous_attribute(attrib):
-                conversion = float
+            try:
+                option = record[self.label]
+                child = self.children[option]
+            except KeyError:
+                raise utils.InvalidDataError()
             else:
-                conversion = str
-            condition = lambda key: key in self.children
-            value = utils.read_option(text, fail_text, conversion)
-            if type(value) == str:
-                value = value.strip('\n')
-
-            if utils.is_continuous_attribute(attrib):
-                # There will always be only 2 children
-                options = self.children.keys()
-                if ' <= ' in options[0]:
-                    threshold = float(options[0].split(' <= ')[1])
-                    if value <= threshold:
-                        self.children[options[0]].use()
-                    else:
-                        self.children[options[1]].use()
+                record.pop(self.label)
+                if len(record) == 0:
+                    return child
                 else:
-                    threshold = float(options[1].split(' <= ')[1])
-                    if value <= threshold:
-                        self.children[options[1]].use()
-                    else:
-                        self.children[options[0]].use()
-            else:
-                self.children[value].use()
+                    return child.use(record)
 
     def save(self, save_file_path):
         root = ET.Element('root', {'label': self.label})
