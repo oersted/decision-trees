@@ -18,9 +18,11 @@ create_decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]
 
 use_decision_tree.py [-m <datafile>] [-t <target>] [-v] <inputfile>
 
-    -m     process multiple data records stored in <datafile>
-    -t     <target> will be used to refer to the target attribute instead of 'Result'
-    -v     show graphic representation of decision tree
+    -m     <datafile> fitxategian gordetako hainbat datu instantzia
+           prozesatu
+    -t     <target> erabiliko da bilati nahi den atributua izendatzeko
+           Result' beharrean
+    -v     erakutsi zuhaitzaren errepresentazio grafikoa
 
 SARRERA
 ~~~~~~~
@@ -98,6 +100,42 @@ AUKERAK
     sortutako zuhaitza erabakiak hartzeko erabiltzea eragiten du,
     use_decision_tree.py programan egiten den moduan.
 
-
 use_decision_tree.py
 ~~~~~~~~~~~~~~~~~~~~
+
+ERABILERA OROKORRA
+~~~~~~~~~~~~~~~~~~
+
+Programa hau create_decision_tree.py programaren bidez gordetako erabakitze
+zuhaitzak erabiltzeko balio du. Funtzionalitate lehenetsia create_decision_tree.py
+programan zuhaitza erabiltzea aukeratzean ikus daitekeenaren oso antzekoa da.
+Hala ere, horrez gain beste hainbat hautazko funtzionalitate ditu.
+
+Garrantzitsuena zuhaitza hainbat datu multzorekin jarraian automatikoki
+erabiltzeko aukera da. Programari, gordetako zuhaitzaren XML fitxategia
+emateaz gain, datu horiek gordetzen dituen CSV fitxategi bat pasatzen 
+bazaio, honek fitxategia lerroz lerro iteratu eta bilatzen diren atributuaren
+balioak gordetzeko beste zutabe bat gehituko dio fitxategiari.
+
+AUKERAK
+~~~~~~~
+
+-m  parametroak neurtutako atributuen datuak gordetzen dituen CSV bat
+    prozesatzea ahalbidetzen du, erabakitze zuhaitza erabiliz kasu
+    bakoitzean bilatu nahi den balioa lortzeko.
+
+    <datafile> honek create_decision_tree.py programari pasa beharreko datu
+    fitxategiaren formatu oso antzekoa izan beharko du. Fitxategi honetan,
+    ordea, lehenago aipatutako <target_attribute> deduzitu nahi den atributuaren
+    zutabea ez da fitxategian egongo. Lerro bakoitzean datuen instantzia bat
+    egongo da, zutabe bakoitzean atributen neurketa bat agertzen delarik. Programak,
+    datu hauek hartu, zuhaitza erabiliz <target_attribute>-a deduzitu eta
+    fitxategiari beste zutabe bat gehituko dio lerro bakoitzari dagokion emaitza
+    balioa gordetzeko.
+
+-t  parametroarekin emandako <target> izena emango dio programak zuhaitza erabiliz
+    bilatu nahi den atributua izendatzeko. Balio hau ematen ez bada programak
+    automatikoki "Result" izendatuko du atributua.
+
+-v  parametroak erabakitze zuhaitzaren adierazpen grafikoa irteera estandarrean
+    inprimatzea eragingo du.
