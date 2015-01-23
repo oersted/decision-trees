@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from math import log10, floor, ceil
 
 def parse_opts():
-    usage = ("decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>] "
+    usage = ("create_decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>] "
         "[-c <costs_file>] [-m] [-r] [-u] <inputfile> <target_attribute>\n"
         "  -o     use <outputfile> instead stdin\n"
         "  -s     save resulting tree in <savefile> as XML\n"
