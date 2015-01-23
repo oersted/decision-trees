@@ -90,7 +90,7 @@ class DecisionTree(object):
             sys.stdout.write("\nResult: " + self.label + '\n')
         else:
             attrib = self.label
-            text = "\nGive the value of attribute %s:\n" % attrib
+            text = "\nGive the value of attribute <%s>:\n" % attrib
             fail_text = "Not a valid value.\n"
             if utils.is_continuous_attribute(attrib):
                 conversion = float

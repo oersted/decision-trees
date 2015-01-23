@@ -1,4 +1,4 @@
-from algorithms.tree import DecisionTree
+from algorithms.base import DecisionTree
 import sys
 
 def parse_opts():

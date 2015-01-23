@@ -111,7 +111,7 @@ def get_algorithm(data, attributes, target_attribute):
     text += "\t2. Use ID3.\n"
     text += "\t3. Continue with ID3.\n"
     text += "\n"
-    fail_text = "That's not an option.\n\n"
+    fail_text = "That's not an option.\n"
     conversion = int
     condition = lambda x: x in (1,2,3)
     option = utils.read_option(text, fail_text, conversion, condition)
