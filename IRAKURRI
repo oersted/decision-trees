@@ -41,11 +41,11 @@ beharrezkoa dela).
 
 AUKERAK
 ~~~~~~~
--o  parametroak programak bere irteera irteera estandarretik erakutsi
+-o  parametroak programak bere irteera estandarretik erakutsi
     ordez beste <outputfile> fitxategira bidali behar duela adierazteko
     balio du.
 
--s  parematroak sortutako zuaitza XML fitxategi batean gordetzea
+-s  parematroak sortutako zuhaitza XML fitxategi batean gordetzea
     ahalbidetzen du, eta honi esker posible izango da ondoren zuhaitza
     erabakiak hartzeko erabiltzea use_decision_tree.py programa
     erabiliz.
@@ -84,4 +84,5 @@ AUKERAK
     lortzeko erabili den informazioaren arteko erlazioa txarra baita.
 
 -u  parametro honek zuhaitza sortu ondoren programa bukatu ordez
-    sortutako zuhaitza erabakiak hartzeko erabiltzea eragiten du.
+    sortutako zuhaitza erabakiak hartzeko erabiltzea eragiten du,
+    use_decision_tree.py programan egiten den moduan.
