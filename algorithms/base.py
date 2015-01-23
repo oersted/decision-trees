@@ -190,7 +190,7 @@ class DecisionTree(object):
         return string
 
 def choose_attribute(tree, data, attributes, target_attribute, target_attrib_counter):
-    import id3
+    from . import id3
     id3_tree = id3.ID3Tree()
     id3_attrib, threshold = id3.choose_attribute(
         id3_tree, data, attributes, target_attribute, target_attrib_counter)

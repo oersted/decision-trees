@@ -74,7 +74,7 @@ def get_data(input_file_path):
 
     return (data, header)
 
-def get_costs(file_name):
+def get_costs(file_name, attribs):
     costs = {}
     try:
         f = open(file_name, 'r')
@@ -84,16 +84,19 @@ def get_costs(file_name):
     else:
         reader = csv.reader(f)
         attribute_names = next(reader)
+        if attribute_names != attribs:
+            sys.stderr.write("The costs file data is not valid.\n")
+            sys.exit(2)
         attribute_costs = next(reader)
         for i in range(len(attribute_names)):
             try:
                 costs[attribute_names[i]] = float(attribute_costs[i])
-            except ValueError:
+            except (ValueError, IndexError):
                 sys.stderr.write("The costs file data is not valid.\n")
                 sys.exit(2)
         f.close()
 
-    id3.attribute_costs = costs
+    id3.costs = costs
 
 def choose_loose_end(count):
     text = "\nChoose the next node: "
@@ -150,7 +153,7 @@ def main():
     data, attribs = get_data(input_file_path)
 
     if costs_file is not None:
-       get_costs(costs_file)
+       get_costs(costs_file, attribs)
 
     if attribs.count(target_attrib) != 1:
         sys.stderr.write("The target attribute doesn't exist.\n")
