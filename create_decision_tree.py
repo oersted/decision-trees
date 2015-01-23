@@ -65,11 +65,11 @@ def get_data(input_file_path):
         reader = csv.reader(f)
         header = next(reader)
         try:
-        for row in reader:
-            record = {}
-            for i in range(len(header)):
-                record[header[i]] = row[i]
-            data.append(record)
+            for row in reader:
+                record = {}
+                for i in range(len(header)):
+                    record[header[i]] = row[i]
+                data.append(record)
         except IndexError:
             sys.stderr.write("The input data is not valid.\n")
             sys.exit(2)
