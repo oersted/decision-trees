@@ -1,0 +1,87 @@
+LAGUNTZA AZKARRA
+~~~~~~~~~~~~~~~~
+create_decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]
+                        [-c <costs_file>] [-m] [-r] [-u]
+                        <inputfile> <target_attribute>
+
+  -o     erabili <outputfile> stdin ordez irteerarentzat
+  -s     gorde lortutako zuhaitza <savefile> fitxategian XML formatu
+         erabiliz
+  -c     erabili <costs_file> fitxategiko kostuak erabakitze zuaitza
+         sortzean attributu onena aukeratzeko
+  -m     erabili eskuzko metodoa
+  -r     erabili informazio irabazioaren ordez informazio erlazioa
+         atributu onena aukeratzeko
+  -u     erabili erabakitze zuhaitza sortu ondoren.
+
+SARRERA
+~~~~~~~
+Programa honek ID3 algoritmoa eta honen zenbait gehigarri erabiliz
+erabakitze zuhaitzak sortzeko balio duen programa bat da.
+
+ERABILERA OROKORRA
+~~~~~~~~~~~~~~~~~~
+Programak parametro bezala <inputfile> eta <target_attribute> hartzen
+ditu. Lehenengoa csv motako fitxategi bat izan beharko da, zeinak
+lehenengo lerroan erabiliko diren atributuen izenak edukiko dituen, eta
+hurrengo lerroetan atributu horietako bakoitzaren balioak. Bigarrenak,
+fitxategi horretan agertzen diren atributuetatik zeinentzat eraiki
+behar den zuhaitza adieraziko du.
+
+ID3 algoritmoari jarritako gehigarrien artean balio jarraituekin lan
+egiteko aukera dago, eta ondorioz atributu baten balioak balio erreal
+bezala tratatu behar direla adierazteko '*' karakterea jarri beharko
+da csv fitxategian atributu izenaren lehenengo karaktere bezala.
+Algoritmoak helburu atributua ere jarraitua izatea ahalbidetzen du,
+baina gogoratu kasu honetan <target_attribute> parametroan '*'
+karakterea gehitzea (eta baita ere linuxeko kontsolan '*' karaktere
+berezia izanik '\' bat edota atributu osoa komatxo artean joatea
+beharrezkoa dela).
+
+
+AUKERAK
+~~~~~~~
+-o  parametroak programak bere irteera irteera estandarretik erakutsi
+    ordez beste <outputfile> fitxategira bidali behar duela adierazteko
+    balio du.
+
+-s  parematroak sortutako zuaitza XML fitxategi batean gordetzea
+    ahalbidetzen du, eta honi esker posible izango da ondoren zuhaitza
+    erabakiak hartzeko erabiltzea use_decision_tree.py programa
+    erabiliz.
+
+-c  parametro honek ID3 algoritmoarentzat gehigarria den atributuen
+    kostuaren baloratzea aktibatzen du. Kostuek eragin zuzena dute
+    fase bakoitzean egokiena den atributua erabakitzeko garaian, eta
+    horregatik funtzio hau aktibatzeak erabat alda dezake itzuliko den
+    zuhaitzaren forma.
+
+    Atributu bakoitzarentzat kostua zein den <costs_file> fitxategitik
+    irakurriko da. Fitxategi hau csv motako fitxategi izango da.
+    Lehenengo lerro <inputfileko> lehen lerroaren berdina izan beharko
+    da, eta bigarrenean gainean dagoen atributuaren kostua agertu
+    beharko da.
+
+-m  parametro honek programa eskuzko funtzionamendu moduan sartzea
+    eragiten du. Modu honetan, erabiltzaileak zuhaitzaren sorkuntzaren
+    fase bakoitzean ID3 algoritmoak proposatutako atributua, edota
+    beste balio bat aukeratzerik izango du. Ondorioz, zuhaitza era
+    pertsonalizatuan haziko da, eta erabiltzaileak bere aukerek izango
+    duten inpaktua izateko aukera izango du.
+
+    Prozesuaren edozein momentutan erabiltzaileak aukera izango du
+    kontrol osoa ID3 algoritmoari pasa eta honek zuhaitz osoa buka
+    dezan uzteko.
+
+-r  Parametro honek informazio erlazioaren erabilera aktibatzen du
+    informazio irabaziaren ordez.
+
+    ID3 algoritmoak informazio irabazia erabiltzen du hurrengo
+    faserako atributu egokiena zein den erabakitzeko. Orokorrean hau
+    egokia bada ere, atributu batek balio ezberdin piloa har badezake
+    (esate baterako atributu hori data bat bada) askotan lortutako
+    emaitzak ez dira egokiak, informazioa irabaziaren eta irabazi hori
+    lortzeko erabili den informazioaren arteko erlazioa txarra baita.
+
+-u  parametro honek zuhaitza sortu ondoren programa bukatu ordez
+    sortutako zuhaitza erabakiak hartzeko erabiltzea eragiten du.
