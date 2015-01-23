@@ -106,25 +106,7 @@ def manual_use(tree, target_attribute):
             value = utils.read_option(text, fail_text, conversion)
             if type(value) == str:
                 value = value.strip('\n')
-
-            record = {tree.label: None}
-            if utils.is_continuous_attribute(attrib):
-                # There will always be only 2 children
-                options = tree.children.keys()
-                if ' <= ' in options[0]:
-                    threshold = float(options[0].split(' <= ')[1])
-                    if value <= threshold:
-                        record[tree.label] = options[0] 
-                    else:
-                        record[tree.label] = options[1]
-                else:
-                    threshold = float(options[1].split(' <= ')[1])
-                    if value <= threshold:
-                        record[tree.label] = options[1]
-                    else:
-                        record[tree.label] = options[0]
-            else:
-                record[tree.label] = value
+            record = {tree.label: value}
 
             manual_use(tree.use(record), target_attribute)
 

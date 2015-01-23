@@ -91,6 +91,24 @@ class DecisionTree(object):
         else:
             try:
                 option = record[self.label]
+
+                if utils.is_continuous_attribute(self.label):
+                    option = float(option)
+                    # There will always be only 2 children
+                    options = self.children.keys()
+                    if ' <= ' in options[0]:
+                        threshold = float(options[0].split(' <= ')[1])
+                        if option <= threshold:
+                            option = options[0] 
+                        else:
+                            option = options[1]
+                    else:
+                        threshold = float(options[1].split(' <= ')[1])
+                        if option <= threshold:
+                            option = options[1]
+                        else:
+                            option = options[0]
+
                 child = self.children[option]
             except KeyError:
                 raise utils.InvalidDataError()
