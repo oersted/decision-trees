@@ -218,7 +218,7 @@ def main():
             tree.save(save_file_path)
 
         if use:
-            tree.use()
+            utils.manual_use(tree, target_attrib)
     except utils.InvalidDataError as e:
         sys.stderr.write(e.message)
         sys.exit(2)

@@ -80,3 +80,25 @@ def read_option(text = None, fail_text = None, conversion = None, condition = No
                     break
 
     return option
+
+def manual_use(tree, target_attribute):
+    if len(tree.children) == 0:
+        name = 'Result'
+        if target_attribute:
+            name = target_attribute
+        sys.stdout.write("\n%s: %s\n" % (name, tree.label))
+    else:
+        attrib = tree.label
+        text = "\nGive the value of attribute <%s>: " % attrib
+        fail_text = "Not a valid value.\n"
+        if is_continuous_attribute(attrib):
+            conversion = float
+        else:
+            conversion = str
+        condition = lambda key: key in tree.children
+        value = read_option(text, fail_text, conversion)
+        if type(value) == str:
+            value = value.strip('\n')
+        record = {tree.label: value}
+
+        manual_use(tree.use(record), target_attribute)

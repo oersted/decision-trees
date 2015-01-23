@@ -14,10 +14,21 @@ create_decision_tree.py [OPTION]... [-o <outputfile>] [-s <savefile>]
          atributu onena aukeratzeko
   -u     erabili erabakitze zuhaitza sortu ondoren.
 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+use_decision_tree.py [-m <datafile>] [-t <target>] [-v] <inputfile>
+
+    -m     process multiple data records stored in <datafile>
+    -t     <target> will be used to refer to the target attribute instead of 'Result'
+    -v     show graphic representation of decision tree
+
 SARRERA
 ~~~~~~~
 Programa honek ID3 algoritmoa eta honen zenbait gehigarri erabiliz
-erabakitze zuhaitzak sortzeko balio duen programa bat da.
+erabakitze zuhaitzak sortzeko eta erabiltzeko balio duen programa bat da.
+
+create_decision_tree.py
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ERABILERA OROKORRA
 ~~~~~~~~~~~~~~~~~~
@@ -86,3 +97,7 @@ AUKERAK
 -u  parametro honek zuhaitza sortu ondoren programa bukatu ordez
     sortutako zuhaitza erabakiak hartzeko erabiltzea eragiten du,
     use_decision_tree.py programan egiten den moduan.
+
+
+use_decision_tree.py
+~~~~~~~~~~~~~~~~~~~~

@@ -88,28 +88,6 @@ def process_data_file(data_file_path, tree, target_attribute):
                 writer.writerow(row)
             f.close()
 
-def manual_use(tree, target_attribute):
-        if len(tree.children) == 0:
-            name = 'Result'
-            if target_attribute:
-                name = target_attribute
-            sys.stdout.write("\n%s: %s\n" % (name, tree.label))
-        else:
-            attrib = tree.label
-            text = "\nGive the value of attribute <%s>: " % attrib
-            fail_text = "Not a valid value.\n"
-            if utils.is_continuous_attribute(attrib):
-                conversion = float
-            else:
-                conversion = str
-            condition = lambda key: key in tree.children
-            value = utils.read_option(text, fail_text, conversion)
-            if type(value) == str:
-                value = value.strip('\n')
-            record = {tree.label: value}
-
-            manual_use(tree.use(record), target_attribute)
-
 def main():
     input_file_path, data_file_path, target_attribute, verbose = parse_opts()
     tree = DecisionTree()
@@ -119,7 +97,7 @@ def main():
     if data_file_path:
         process_data_file(data_file_path, tree, target_attribute)
     else:
-        manual_use(tree, target_attribute)
+        utils.manual_use(tree, target_attribute)
 
 if __name__ == '__main__':
     main()
