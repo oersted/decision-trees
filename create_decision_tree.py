@@ -64,12 +64,16 @@ def get_data(input_file_path):
     else:
         reader = csv.reader(f)
         header = next(reader)
-
+        try:
         for row in reader:
             record = {}
             for i in range(len(header)):
                 record[header[i]] = row[i]
             data.append(record)
+        except IndexError:
+            sys.stderr.write("The input data is not valid.\n")
+            sys.exit(2)
+
         f.close()
 
     return (data, header)
@@ -125,9 +129,13 @@ def get_algorithm(data, attributes, target_attribute):
 
 def render(tree, output_file_path = None):
     if output_file_path:
-        f = open(output_file_path, 'w')
-        f.write(str(tree))
-        f.close()
+        try:
+            f = open(output_file_path, 'w')
+            f.write(str(tree))
+            f.close()
+        except IOError:
+            sys.stderr.write("Output file could not be opened. Using stdout instead...\n")
+            sys.stdout.write(str(tree))
     else:
         sys.stdout.write(str(tree))
 
