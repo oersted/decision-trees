@@ -124,9 +124,11 @@ class DecisionTree(object):
         XMLTree = ET.ElementTree(root)
         for option in self.children:
             self.children[option]._save(root, option)
-
-        f = open(save_file_path, 'w')
-        f.write(ET.tostring(root))
+        try:
+            f = open(save_file_path, 'w')
+            f.write(ET.tostring(root))
+        except:
+            sys.stderr.write('Save file could not be opened. The decision tree was not saved.\n')
 
     def _save(self, root, option):
         subtree = ET.SubElement(root, 'node', {'label': self.label, 'option': option})
