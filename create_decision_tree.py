@@ -191,8 +191,10 @@ def main():
             if manual_mode:
                 choose_attribute, tree_type, manual_mode = get_algorithm(data, attribs, target_attrib)
 
-            if not isinstance(new_tree, tree_type):
-                new_tree = tree_type(new_tree.label)
+            if new_tree.__class__ != tree_type:
+                correct_type_tree = tree_type(new_tree.label)
+                correct_type_tree.number = new_tree.number
+                new_tree = correct_type_tree
                 parent.children[option] = new_tree
 
             loose_ends.extend(new_tree.extend(
